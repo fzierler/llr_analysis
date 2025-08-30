@@ -113,12 +113,16 @@ function parse_llr(file; skiplines = Int[])
                 append!(a, parse(Float64, str[2]))
             end
             # Parse LLR thermalisation and measurement steps
-            if startswith(line, "[MAIN][0]LLR number of mc steps per RM: ")
-                len = length("[MAIN][0]LLR number of mc steps per RM: ")
+            pattern_mcA = "[MAIN][0]LLR number of mc steps per RM: "
+            pattern_mcB = "[MAIN][0]LLR nunber of mc steps per RM: "
+            if startswith(line, pattern_mcA) || startswith(line, pattern_mcB)
+                len = length(pattern_mcA)
                 append!(llr_meas, parse(Int, line[len:end]))
             end
-            if startswith(line, "[MAIN][0]LLR number of therm steps per RM ")
-                len = length("[MAIN][0]LLR number of therm steps per RM ")
+            pattern_thermA = "[MAIN][0]LLR number of therm steps per RM "
+            pattern_thermB = "[MAIN][0]LLR nunber of therm steps per RM "
+            if startswith(line, pattern_thermA) || startswith(line, pattern_thermB)
+                len = length(pattern_thermA)
                 append!(llr_therm, parse(Int, line[len:end]))
             end
         end
