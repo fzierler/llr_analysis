@@ -60,9 +60,12 @@ function main(files, plt_name)
         runs = filter(!startswith("provenance"), runs)
         x, I, ΔI = zeros(length(runs)), zeros(length(runs)), zeros(length(runs))
         for (i, r) in enumerate(runs)
+            try
             beta, Pmin, Pmax, inter, Nt, Ns = beta_Pmin_Pmax_jackknife(fid, r)
             I[i], ΔI[i] = apply_jackknife(inter)
             x[i] = inv(Ns / Nt)
+            catch
+            end
         end
         plot!(plt, x .^ 2, I, yerr = ΔI, markershape = :circle, markeralpha = 0.7, label = L"N_t=%$Nt")
     end

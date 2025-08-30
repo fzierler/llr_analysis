@@ -27,6 +27,7 @@ $N_t$ & $N_s$ & $u_{p}^{\rm min}$ & $u_{p}^{\rm max}$ & $N_{\rm rep}$ & $N_{\rm 
         up = S0 / (6Ns^3 * Nt)
         isrm = read(fid[run], "$(first(repeats))/Rep_0/is_rm")
         nr, rm = findlast(x -> !x, isrm), length(isrm)
+        nr = isnothing(nr) ? 0 : nr
         println(
             io,
             "$Nt & $Ns & $(round((minimum(up)), digits = 3)) & $(round(maximum(up), digits = 3)) & $Nreplicas & $Nrepeats & $nr & $(rm - nr) \\\\",

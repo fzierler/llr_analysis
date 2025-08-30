@@ -144,8 +144,8 @@ function plot_a_trajectory_all!(plt, h5dset, run, replica)
 end
 function plot_nr_rm_shading!(plt, h5dset, run, repeat, replica)
     isrm = read(h5dset[run], "$repeat/Rep_$replica/is_rm")
-    nr, rm = findlast(x -> !x, isrm) - 1, length(isrm)
-    nr = isnothing(nr) ? 0 : nr
+    nr, rm = findlast(x -> !x, isrm), length(isrm)
+    nr = isnothing(nr) ? 0 : nr - 1
     vspan!(plt, [1, nr + 1], color = :green, alpha = 0.2, labels = "NR")
     vspan!(plt, [nr + 1, rm], color = :blue, alpha = 0.2, labels = "RM")
     return plt
