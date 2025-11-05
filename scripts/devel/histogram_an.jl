@@ -3,13 +3,13 @@ using HDF5
 using Plots
 using LaTeXStrings
 gr(
-    size = (425, 282),
+    size = (350, 300),
     fontfamily = "Computer Modern",
     legend = :topleft,
     frame = :box,
     titlefontsize = 10,
-    legendfontsize = 7,
-    tickfontsize = 7,
+    legendfontsize = 9,
+    tickfontsize = 9,
     labelfontsize = 10,
     left_margin = 0Plots.mm,
 )

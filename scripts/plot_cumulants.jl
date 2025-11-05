@@ -8,13 +8,13 @@ using Peaks
 using Quadmath
 using DelimitedFiles
 gr(
-    size = (425, 282),
+    size = (350, 300),
     fontfamily = "Computer Modern",
     legend = :topleft,
     frame = :box,
     titlefontsize = 10,
-    legendfontsize = 7,
-    tickfontsize = 7,
+    legendfontsize = 9,
+    tickfontsize = 9,
     labelfontsize = 10,
     left_margin = 0Plots.mm,
 )
@@ -57,7 +57,7 @@ function cumulants(h5dset, run, β)
 end
 function cumulant_plots(h5file, Nt, critical_values)
     fid = h5open(h5file)
-    pltCV = plot(legend = :bottomleft, xlabel = L"\beta", ylabel = L"C_V(\beta)", title = L"N_t = %$Nt")
+    pltCV = plot(legend = :topleft, xlabel = L"\beta", ylabel = L"C_V(\beta)", title = L"N_t = %$Nt")
     pltBC = plot(legend = :bottomright, xlabel = L"\beta", ylabel = L"B_V(\beta) - 2/3", title = L"N_t = %$Nt")
     runs = filter(!startswith("provenance"), keys(fid))
     runs = largets_replica_runs(fid, runs)

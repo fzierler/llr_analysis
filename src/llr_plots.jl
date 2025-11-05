@@ -206,7 +206,7 @@ function full_trajectory_plot(h5dset, run, repeat_id, replica_id; lens = true)
         ylabel = L"\Delta a_n",
     )
     if lens
-        plot!(plt3, subplot = 2, left_margin = 0Plots.mm, tickfontsize = 8, ylabel = "")
+        plot!(plt3, subplot = 2, left_margin = 0Plots.mm, tickfontsize = 9, ylabel = "")
     end
     l = grid(4, 1, heights = [0.29, 0.29, 0.29, 0.13])
     plt = plot(plt1, plt2, plt3, plt4, layout = l, size = (500, 1000))

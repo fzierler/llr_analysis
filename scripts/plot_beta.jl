@@ -3,13 +3,13 @@ using Plots
 using ArgParse
 using LaTeXStrings
 gr(
-    size = (425, 282),
+    size = (350, 300),
     fontfamily = "Computer Modern",
     legend = :topright,
     frame = :box,
     titlefontsize = 10,
-    legendfontsize = 7,
-    tickfontsize = 7,
+    legendfontsize = 9,
+    tickfontsize = 9,
     labelfontsize = 10,
     left_margin = 1Plots.mm,
 )
