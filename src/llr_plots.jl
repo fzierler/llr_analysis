@@ -160,7 +160,8 @@ function plot_a_repeat_average!(plt, h5dset, run; replica)
     hspan!(plt, [a0 - Δa, a0 + Δa], color = :black, alpha = 0.8, labels = L"a_n")
     return plt
 end
-fancy_title(Lt, Ls, Nint) = L"%$Lt\!\times\!%$(Ls)^3\!, N_{\!\mathrm{rep}}\!\!=%$Nint"
+fancy_title_long(Lt, Ls, Nint) = L"%$Lt\!\times\!%$(Ls)^3\!, N_{\!\mathrm{rep}}\!\!=%$Nint"
+fancy_title(Lt, Ls, Nint) = L"%$Lt\!\times\!%$(Ls)^3"
 function fancy_title(run)
     rx = r"([0-9]+)x([0-9]+)_([0-9]+)replicas"
     m = match(rx, run).captures
