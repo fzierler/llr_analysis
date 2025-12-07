@@ -1,7 +1,7 @@
 import functools
 import pandas as pd
 
-metadata = pd.read_csv("metadata/runs.csv")
+metadata = pd.read_csv("metadata/runs_sp4.csv")
 
 
 def list_hdf5_datasets_Nt(metadata, Nt):
@@ -40,7 +40,7 @@ def input_logs(wildcards):
 
 rule all:
     input:
-        definitions="assets/definitions/definitions.tex",
+        definitions="assets/sp4/definitions/definitions.tex",
         overview_plots=expand(
             "tmp/plots/overview/{dataset}.pdf",
             dataset=list_hdf5_datasets(metadata),
@@ -50,61 +50,63 @@ rule all:
             dataset=list_hdf5_datasets(metadata),
         ),
         free_energy_plots_Nt4=expand(
-            "assets/plots/free_energy/free_energy_{dataset}.pdf",
+            "assets/sp4/plots/free_energy/free_energy_{dataset}.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 4),
         ),
         free_energy_plots_Nt5=expand(
-            "assets/plots/free_energy/free_energy_{dataset}.pdf",
+            "assets/sp4/plots/free_energy/free_energy_{dataset}.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 5),
         ),
-        an_volume_plots=expand("assets/plots/an_volume_Nt{Nt}.pdf", Nt=[4, 5]),
-        entropy_plots=expand("assets/plots/entropy_Nt{Nt}.pdf", Nt=[4, 5]),
+        an_volume_plots=expand("assets/sp4/plots/an_volume_Nt{Nt}.pdf", Nt=[4, 5]),
+        entropy_plots=expand("assets/sp4/plots/entropy_Nt{Nt}.pdf", Nt=[4, 5]),
         critical_beta_volume_plots=expand(
-            "assets/plots/critical_beta_volumes_Nt{Nt}.pdf", Nt=[4, 5]
+            "assets/sp4/plots/critical_beta_volumes_Nt{Nt}.pdf", Nt=[4, 5]
         ),
         double_gaussian_volume_plots=expand(
-            "assets/plots/plaquette_distribution_Nt{Nt}_volumes.pdf", Nt=[4, 5]
+            "assets/sp4/plots/plaquette_distribution_Nt{Nt}_volumes.pdf", Nt=[4, 5]
         ),
         double_gaussian_plots_Nt4=expand(
-            "assets/plots/plaquette_distribution/pd_{dataset}.pdf",
+            "assets/sp4/plots/plaquette_distribution/pd_{dataset}.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 4),
         ),
         double_gaussian_plots_Nt5=expand(
-            "assets/plots/plaquette_distribution/pd_{dataset}.pdf",
+            "assets/sp4/plots/plaquette_distribution/pd_{dataset}.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 5),
         ),
         double_gaussian_plots_Nt4_2_to_1=expand(
-            "assets/plots/plaquette_distribution/pd_{dataset}_two_to_one.pdf",
+            "assets/sp4/plots/plaquette_distribution/pd_{dataset}_two_to_one.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 4),
         ),
         double_gaussian_plots_Nt5_2_to_1=expand(
-            "assets/plots/plaquette_distribution/pd_{dataset}_two_to_one.pdf",
+            "assets/sp4/plots/plaquette_distribution/pd_{dataset}_two_to_one.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 5),
         ),
         double_gaussian_plots_Nt4_1_to_2=expand(
-            "assets/plots/plaquette_distribution/pd_{dataset}_one_to_two.pdf",
+            "assets/sp4/plots/plaquette_distribution/pd_{dataset}_one_to_two.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 4),
         ),
         double_gaussian_plots_Nt5_1_to_2=expand(
-            "assets/plots/plaquette_distribution/pd_{dataset}_one_to_two.pdf",
+            "assets/sp4/plots/plaquette_distribution/pd_{dataset}_one_to_two.pdf",
             dataset=list_hdf5_datasets_Nt(metadata, 5),
         ),
         an_replica_plots=expand(
-            "assets/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf",
+            "assets/sp4/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf",
             zip,
             Nt=[5, 5],
             Ns=[48, 56],
         ),
         plot_binder_cumulant=expand(
-            "assets/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]
+            "assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]
         ),
-        plot_specific_heat=expand("assets/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]),
-        surface_tension_plot="assets/plots/surface_tension_term.pdf",
-        ensembles_combined="assets/tables/runs.tex",
-        file_out="assets/tables/beta_critical.tex",
-        out_cumulants="data_assets/critical_beta_cumulants.csv",
-        out_critical="data_assets/critical_beta_distribution.csv",
-        out_ratios="data_assets/critical_beta_ratios.csv",
+        plot_specific_heat=expand(
+            "assets/sp4/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]
+        ),
+        surface_tension_plot="assets/sp4/plots/surface_tension_term.pdf",
+        ensembles_combined="assets/sp4/tables/runs.tex",
+        file_out="assets/sp4/tables/beta_critical.tex",
+        out_cumulants="data_assets/sp4/critical_beta_cumulants.csv",
+        out_critical="data_assets/sp4/critical_beta_distribution.csv",
+        out_ratios="data_assets/sp4/critical_beta_ratios.csv",
 
 
 rule julia_instantiate:
@@ -123,7 +125,7 @@ rule parse_hdf5:
         #logs=input_logs,
         script="scripts/parse_llr.jl",
         julia_instantiated="tmp/julia_ready",
-        metadata="metadata/runs.csv",
+        metadata="metadata/runs_sp4.csv",
     output:
         h5file="tmp/Sp4_Nt{Nt}.hdf5",
     conda:
@@ -138,7 +140,7 @@ rule sort_hdf5:
         h5file="tmp/Sp4_Nt{Nt}.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
     conda:
         "envs/environment.yml"
     shell:
@@ -148,7 +150,7 @@ rule sort_hdf5:
 rule tables:
     input:
         script="scripts/tables.jl",
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
         table="tmp/tables/runs_Nt{Nt}.tex",
@@ -160,7 +162,7 @@ rule tables:
 
 rule overview_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/trajectory_overview.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -173,7 +175,7 @@ rule overview_plots:
 
 rule an_trajectory_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/an_history.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -186,12 +188,12 @@ rule an_trajectory_plots:
 
 rule free_energy_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/free_energy.jl",
         julia_instantiated="tmp/julia_ready",
-        entropy="metadata/critical_entropy.csv",
+        entropy="metadata/critical_entropy_sp4.csv",
     output:
-        plot="assets/plots/free_energy/free_energy_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="assets/sp4/plots/free_energy/free_energy_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -200,11 +202,11 @@ rule free_energy_plots:
 
 rule an_volume_comparison_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/compare_volumes.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/an_volume_Nt{Nt}.pdf",
+        plot="assets/sp4/plots/an_volume_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -213,11 +215,11 @@ rule an_volume_comparison_plots:
 
 rule an_replica_comparison_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/compare_replicas.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf",
+        plot="assets/sp4/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -226,12 +228,12 @@ rule an_replica_comparison_plots:
 
 rule entropy_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/entropy.jl",
         julia_instantiated="tmp/julia_ready",
-        entropy="metadata/critical_entropy.csv",
+        entropy="metadata/critical_entropy_sp4.csv",
     output:
-        plot="assets/plots/entropy_Nt{Nt}.pdf",
+        plot="assets/sp4/plots/entropy_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -240,7 +242,7 @@ rule entropy_plots:
 
 rule critical_beta:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -253,7 +255,7 @@ rule critical_beta:
 
 rule critical_cumulant:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/critical_cumulants.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -266,7 +268,7 @@ rule critical_cumulant:
 
 rule critical_beta_two_to_one:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -279,7 +281,7 @@ rule critical_beta_two_to_one:
 
 rule critical_beta_one_to_two:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -292,11 +294,11 @@ rule critical_beta_one_to_two:
 
 rule double_gaussian_volume_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/double_gaussian_volumes.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/plaquette_distribution_Nt{Nt}_volumes.pdf",
+        plot="assets/sp4/plots/plaquette_distribution_Nt{Nt}_volumes.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -311,7 +313,7 @@ rule critical_beta_volume_plots:
         critical_beta_one_to_two="tmp/critical_beta_1:2_Nt{Nt}.csv",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/critical_beta_volumes_Nt{Nt}.pdf",
+        plot="assets/sp4/plots/critical_beta_volumes_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -320,11 +322,11 @@ rule critical_beta_volume_plots:
 
 rule double_gaussian_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="assets/sp4/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -333,11 +335,11 @@ rule double_gaussian_plots:
 
 rule double_gaussian_plots_two_to_one:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_two_to_one.pdf",
+        plot="assets/sp4/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_two_to_one.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -346,11 +348,11 @@ rule double_gaussian_plots_two_to_one:
 
 rule double_gaussian_plots_one_to_two:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_one_to_two.pdf",
+        plot="assets/sp4/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_one_to_two.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -359,13 +361,13 @@ rule double_gaussian_plots_one_to_two:
 
 rule cumulant_plots:
     input:
-        h5file="data_assets/Sp4_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/sp4/Sp4_Nt{Nt}_sorted.hdf5",
         script="scripts/plot_cumulants.jl",
         julia_instantiated="tmp/julia_ready",
         csv="tmp/critical_beta_cumulants_Nt{Nt}.csv",
     output:
-        plot_binder_cumulant="assets/plots/binder_cumulant_Nt{Nt}.pdf",
-        plot_specific_heat="assets/plots/specific_heat_Nt{Nt}.pdf",
+        plot_binder_cumulant="assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf",
+        plot_specific_heat="assets/sp4/plots/specific_heat_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     threads: workflow.cores / 2
@@ -376,11 +378,11 @@ rule cumulant_plots:
 rule surface_tension_plot:
     input:
         script="scripts/surface_tension_term.jl",
-        h5file_Nt4="data_assets/Sp4_Nt4_sorted.hdf5",
-        h5file_Nt5="data_assets/Sp4_Nt5_sorted.hdf5",
+        h5file_Nt4="data_assets/sp4/Sp4_Nt4_sorted.hdf5",
+        h5file_Nt5="data_assets/sp4/Sp4_Nt5_sorted.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/surface_tension_term.pdf",
+        plot="assets/sp4/plots/surface_tension_term.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -395,7 +397,7 @@ rule critical_beta_table:
         julia_instantiated="tmp/julia_ready",
     output:
         textable="tmp/tables/beta_critical_Nt{Nt}.tex",
-        plot="assets/plots/beta_critical_Nt{Nt}.pdf",
+        plot="assets/sp4/plots/beta_critical_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -409,7 +411,7 @@ rule definitions:
         h5file_Nt5="tmp/Sp4_Nt5.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
-        definitions="assets/definitions/definitions.tex",
+        definitions="assets/sp4/definitions/definitions.tex",
     conda:
         "envs/environment.yml"
     shell:
@@ -423,7 +425,7 @@ rule combine_ensemble_tables:
         file2="tmp/tables/runs_Nt4.tex",
         julia_instantiated="tmp/julia_ready",
     output:
-        file_out="assets/tables/runs.tex",
+        file_out="assets/sp4/tables/runs.tex",
     conda:
         "envs/environment.yml"
     shell:
@@ -442,9 +444,9 @@ rule combine_csv:
             for r in ["1:2", "2:1"]
         ],
     output:
-        out_cumulants="data_assets/critical_beta_cumulants.csv",
-        out_critical="data_assets/critical_beta_distribution.csv",
-        out_ratios="data_assets/critical_beta_ratios.csv",
+        out_cumulants="data_assets/sp4/critical_beta_cumulants.csv",
+        out_critical="data_assets/sp4/critical_beta_distribution.csv",
+        out_ratios="data_assets/sp4/critical_beta_ratios.csv",
     conda:
         "envs/environment.yml"
     shell:
@@ -462,7 +464,7 @@ rule combine_critical_beta_tables:
         file2="tmp/tables/beta_critical_Nt4.tex",
         julia_instantiated="tmp/julia_ready",
     output:
-        file_out="assets/tables/beta_critical.tex",
+        file_out="assets/sp4/tables/beta_critical.tex",
     conda:
         "envs/environment.yml"
     shell:

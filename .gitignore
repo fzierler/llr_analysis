@@ -1,7 +1,7 @@
-assets/
-data_assets/
+assets*/
+data_assets*/
 metadata/
-raw_data/
+raw_data*/
 tmp/
 *.h5
 *.hdf5
