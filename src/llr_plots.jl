@@ -86,6 +86,8 @@ function a_vs_central_action_plot!(
     up = S0 / (6V)
     plot!(plt, up, a0, yerr = Δa0, marker = :auto; label)
     if !isnothing(highlight_index)
+        N = length(up)
+        highlight_index = clamp(highlight_index, 1, N - 1)
         mid = up[highlight_index]
         del = (up[highlight_index + 1] - up[highlight_index]) / 2
         vspan!(plt, [mid - del, mid + del], color = :green, alpha = 0.7, labels = "replica")
@@ -113,6 +115,8 @@ function a_variance_vs_central_action_plot!(
     up = S0 / (6V)
     plot!(plt, up, zero(a0), ribbon = (zero(Δa0), Δa0), label = L"\Delta a_n")
     return if !isnothing(highlight_index)
+        N = length(up)
+        highlight_index = clamp(highlight_index, 1, N - 1)
         mid = up[highlight_index]
         del = (up[highlight_index + 1] - up[highlight_index]) / 2
         vspan!(plt, [mid - del, mid + del], color = :green, alpha = 0.8, labels = "replica")
@@ -134,7 +138,7 @@ function a_trajectory(h5dset, run; replica = 0)
 end
 function plot_a_trajectory_repeat!(plt, h5dset, run, repeat, replica)
     a = a_trajectory(h5dset, run; replica)
-    plot!(plt, a[repeat], label = "", lw = 1, markersize = 1, marker = :circle, msw = 0.1)
+    plot!(plt, a[repeat + 1], label = "", lw = 1, markersize = 1, marker = :circle, msw = 0.1)
     return plt
 end
 function plot_a_trajectory_all!(plt, h5dset, run, replica)

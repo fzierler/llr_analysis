@@ -32,8 +32,9 @@ function overview_plot(file, run, plotfile)
     h5dset = h5open(file)
     ispath(dirname(plotfile)) || mkpath(dirname(plotfile))
     Δa0 = a_vs_central_action(h5dset, run)[2]
-    ind = findmax(Δa0)[2]
-    plt = overview(h5dset, run, repeat_id = 1, replica_id = ind)
+    ind = findmax(Δa0)[2] - 1
+    repeats = parse.(Int, read(h5dset[run], "repeats"))
+    plt = overview(h5dset, run, repeat_id = first(repeats), replica_id = ind)
     return savefig(plt, plotfile)
 end
 function parse_commandline_per_run()
