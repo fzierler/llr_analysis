@@ -303,6 +303,20 @@ rule surface_tension_plot:
         'julia --project="." {input.script} --plotfile {output.plot} {input.h5file_Nt4} {input.h5file_Nt5}'
 
 
+rule critical_beta_plot:
+    input:
+        script="scripts/plot_critical_beta.jl",
+        csv_cumulant="tmp/{group}/critical_beta_cumulants_Nt{Nt}.csv",
+        csv_histogram="tmp/{group}/critical_beta_Nt{Nt}.csv",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="assets/{group}/plots/beta_critical_Nt{Nt}.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --plot_file {output.plot} --input_cumulants {input.csv_cumulant} --input_histogram {input.csv_histogram} '
+
+
 rule critical_beta_table:
     input:
         script="scripts/tex_critical_beta.jl",
@@ -311,11 +325,10 @@ rule critical_beta_table:
         julia_instantiated="tmp/julia_ready",
     output:
         textable="tmp/{group}/tables/beta_critical_Nt{Nt}.tex",
-        plot="assets/{group}/plots/beta_critical_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --tex_file {output.textable} --plot_file {output.plot} --input_cumulants {input.csv_cumulant} --input_histogram {input.csv_histogram} '
+        'julia --project="." {input.script} --tex_file {output.textable} --input_cumulants {input.csv_cumulant} --input_histogram {input.csv_histogram} '
 
 
 rule definitions:

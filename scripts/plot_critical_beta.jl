@@ -82,7 +82,7 @@ function parse_commandline()
         "--input_cumulants"
         help = "CSV file with critical beta from cumulants"
         required = true
-        "--tex_file"
+        "--plot_file"
         help = "Where to save the table"
         required = true
     end
@@ -91,5 +91,5 @@ end
 args = parse_commandline()
 file1 = args["input_histogram"]
 file2 = args["input_cumulants"]
-file_tex = args["tex_file"]
-main_table(file1, file2, file_tex)
+file_plot = args["plot_file"]
+main_plot(file1, file2, file_plot)
