@@ -121,7 +121,7 @@ end
 function a_trajectory(h5dset, run; replica = 0)
     N_replicas = read(h5dset[run], "N_replicas")
     repeats = read(h5dset[run], "repeats")
-    @assert replica < N_replicas
+    @assert replica <= N_replicas
     a = [Float64[] for _ in repeats]
     repeat_indices = Int[]
     for (j, repeat) in enumerate(repeats)

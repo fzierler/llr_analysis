@@ -1,0 +1,17 @@
+include: "rules.smk"
+
+
+metadata = pd.read_csv("metadata/runs_su3_zeroT.csv")
+
+
+rule all:
+    input:
+        overview=expand(
+            "tmp/su3_zeroT/plots/overview/{dataset}.pdf",
+            dataset=list_hdf5_datasets_Nt(metadata, 12),
+        ),
+        trajectory=expand(
+            "tmp/su3_zeroT/plots/an_trajectories/{dataset}.pdf",
+            dataset=list_hdf5_datasets_Nt(metadata, 12),
+        ),
+        volume_comparison="assets/su3_zeroT/plots/an_volume_Nt12.pdf",
