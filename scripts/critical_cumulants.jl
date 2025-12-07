@@ -65,7 +65,7 @@ function beta_extremal(β, obs; f = findmax)
     Δβmax = std(βmax0) / sqrt(repeats)
     return βmax, Δβmax
 end
-function critical_beta_cumulants(h5dset, r; N = 30, eps = 1.0e-6, min_iter = 5, max_iter = 20, w = 20)
+function critical_beta_cumulants(h5dset, r; N, eps, min_iter = 5, max_iter = 20, w = 20)
     a = first(LLRParsing._set_up_histogram(h5dset, r))
     min_a, max_a = minimum(a), maximum(a)
     β = range(start = min_a, stop = max_a, length = N)
@@ -92,7 +92,7 @@ function critical_beta_cumulants(h5dset, r; N = 30, eps = 1.0e-6, min_iter = 5, 
     end
     return βc_CV, Δβc_CV, βc_BC, Δβc_BC
 end
-function critical_beta_binder_cumulant(h5dset, r; N = 30, eps = 1.0e-6, min_iter = 5, max_iter = 20, w = 20)
+function critical_beta_binder_cumulant(h5dset, r; N, eps, min_iter = 5, max_iter = 20, w = 20)
     a = first(LLRParsing._set_up_histogram(h5dset, r))
     min_a, max_a = minimum(a), maximum(a)
     β = range(start = min_a, stop = max_a, length = N)
@@ -114,7 +114,7 @@ function critical_beta_binder_cumulant(h5dset, r; N = 30, eps = 1.0e-6, min_iter
     end
     return βc_BC, Δβc_BC
 end
-function critical_beta_specific_heat(h5dset, r; N = 30, eps = 1.0e-6, min_iter = 5, max_iter = 20, w = 20)
+function critical_beta_specific_heat(h5dset, r; N, eps, min_iter = 5, max_iter = 20, w = 20)
     a = first(LLRParsing._set_up_histogram(h5dset, r))
     min_a, max_a = minimum(a), maximum(a)
     β = range(start = min_a, stop = max_a, length = N)
@@ -150,7 +150,7 @@ function critical_cumulants_all_runs(h5file, outfile)
         T = read(h5dset[r], "Nt")
         Nr = read(h5dset[r], "N_replicas")
 
-        kws = (N = 30, eps = 1.0e-6)
+        kws = (N = 50, eps = 1.0e-6)
         βc_CV, Δβc_CV = critical_beta_specific_heat(h5dset, r; kws...)
         βc_BC, Δβc_BC = critical_beta_binder_cumulant(h5dset, r; kws...)
 
