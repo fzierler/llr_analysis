@@ -136,10 +136,11 @@ function critical_beta_specific_heat(h5dset, r; N, eps, min_iter = 5, max_iter =
     end
     return βc_CV, Δβc_CV
 end
-function critical_cumulants_all_runs(h5file, outfile)
+function critical_cumulants_all_runs(h5file, outfile, Nt)
     h5dset = h5open(h5file)
     runs = keys(h5dset)
     runs = filter(!startswith("provenance"), runs)
+    runs = filter(r -> read(h5dset[r], "Nt") == Nt, runs)
     setprecision(BigFloat, 106)
     io = open(outfile, "w")
     print_provenance_csv(io)
@@ -168,6 +169,10 @@ function parse_commandline()
         "--outfile"
         help = "Where to save results"
         required = true
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        required = true
+        arg_type = Int
     end
     return parse_args(s)
 end
@@ -175,6 +180,7 @@ function main()
     args = parse_commandline()
     h5file = args["h5file"]
     outfile = args["outfile"]
-    return critical_cumulants_all_runs(h5file, outfile)
+    Nt = args["Nt"]
+    return critical_cumulants_all_runs(h5file, outfile, Nt)
 end
 main()

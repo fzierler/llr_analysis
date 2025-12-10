@@ -26,15 +26,20 @@ function parse_commandline()
         "--critical_entropy"
         help = "CSV containing entropy at the critical point"
         required = true
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        required = true
+        arg_type = Int
     end
     return parse_args(s)
 end
 function main()
     args = parse_commandline()
+    Nt = args["Nt"]
     file = args["h5file"]
     plotfile = args["plot_file"]
     entropy_csv = args["critical_entropy"]
     critical_entropy = Float64(readdlm(entropy_csv, skipstart = 1)[1, 1])
-    return LLRParsing.plot_entropy(file, plotfile, critical_entropy)
+    return LLRParsing.plot_entropy(file, plotfile, critical_entropy, Nt)
 end
 main()

@@ -65,16 +65,16 @@ function plot_free_energy(file, plotfile, run, critical_entropy)
     a, Δa, S0, _ = a_vs_central_action(h5dset, run)
     t, Δt, f, Δf, s, Δs = thermodynamic_potentials(h5dset, run)
     # show slope of the interface region
-    try 
+    try
         pks = only(findmaxima(a, 5).indices)
         mns = only(findminima(a, 5).indices)
         t1, t2 = t[pks], t[mns]
         βc = LLRParsing.beta_at_equal_heights(h5dset, run)
         ind_tc = argmin(i -> abs(a[i] - βc), pks:mns)
-        
+
         # add constant s0 such that the entropy matches at criticality
         t, Δt, f, Δf, s, Δs = thermodynamic_potentials(h5dset, run; s0 = critical_entropy - s[ind_tc])
-        
+
         # find crossing in free energy
         r1 = 1:pks
         r2 = mns:length(a)
@@ -82,12 +82,12 @@ function plot_free_energy(file, plotfile, run, critical_entropy)
         perm2 = sortperm(t[r2])
         itp1 = Interpolator(t[r1][perm1], f[r1][perm1])
         itp2 = Interpolator(t[r2][perm2], f[r2][perm2])
-        
+
         g(x) = itp1(x) - itp2(x)
         t1, t2 = extrema(filter(t -> isfinite(g(t)), vcat(t[r1], t[r2])))
         tc = find_zero(g, (t1, t2))
         fc = itp1(tc)
-        
+
         # set plot limits
         tmin, tmax = extrema((t[pks], t[mns]))
         δt = tmax - tmin
@@ -95,21 +95,21 @@ function plot_free_energy(file, plotfile, run, critical_entropy)
         fmin, fmax = extrema((f[pks], f[mns]))
         δf = fmax - fmin
         fmin, fmax = extrema((itp2(tmin), itp1(tmax), fmin - δf / 3, fmax + δf / 3))
-        
+
         # rescale free energy for nicer, centred plots
         scale = 10^6
         @. f = f - fc
         @. f = f * scale
         @. Δf = Δf * scale
         fmin, fmax = (fmin - fc) * scale, (fmax - fc) * scale
-        
+
         ispath(dirname(plotfile)) || mkpath(dirname(plotfile))
         plt = plot(title = LLRParsing.fancy_title(run))
         plot!(; ylabel = L"(f - f_c^+ )/ 10^{-6}", xlabel = L"t = 1/a_n")
         plot!(plt, t, f, xerr = Δt, yerr = Δf, ms = 1, label = "")
         plot!(plt, ylims = (fmin, fmax), xlims = (tmin, tmax), xformatter = :plain)
         savefig(plt, plotfile)
-    catch 
+    catch
         ispath(dirname(plotfile)) || mkpath(dirname(plotfile))
         plt = plot(title = LLRParsing.fancy_title(run))
         plot!(; ylabel = L"(f - f_c^+ )/ 10^{-6}", xlabel = L"t = 1/a_n")
@@ -117,11 +117,11 @@ function plot_free_energy(file, plotfile, run, critical_entropy)
     end
     return close(h5dset)
 end
-function plot_entropy(file, plotfile, critical_entropy)
+function plot_entropy(file, plotfile, critical_entropy, Nt)
     h5dset = h5open(file)
     runs = keys(h5dset)
     runs = filter(!startswith("provenance"), runs)
-    Nt = read(h5dset, joinpath(first(runs), "Nt"))
+    runs = filter(r -> read(h5dset[r], "Nt") == Nt, runs)
     plt = plot(title = L"$N_t = %$Nt$")
     for r in runs
         a, Δa, S0, _ = a_vs_central_action(h5dset, r)
@@ -131,7 +131,7 @@ function plot_entropy(file, plotfile, critical_entropy)
         pks = findmaxima(a, 5).indices
         mns = findminima(a, 5).indices
 
-        if length(pks)==1 && length(mns)==1
+        if length(pks) == 1 && length(mns) == 1
             pks = only(pks)
             mns = only(mns)
 

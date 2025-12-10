@@ -6,7 +6,6 @@ metadata = pd.read_csv("metadata/runs_sp4.csv")
 
 rule all:
     input:
-        definitions="assets/sp4/definitions/definitions.tex",
         overview_plots=expand(
             "tmp/sp4/plots/overview/{dataset}.pdf",
             dataset=list_hdf5_datasets(metadata),

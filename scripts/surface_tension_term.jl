@@ -51,19 +51,22 @@ function apply_jackknife(obs::AbstractVector)
     ΔO = sqrt(N - 1) * std(obs, corrected = false)
     return O, ΔO
 end
-function main(files, plt_name)
+function main(file, plt_name)
     plt = plot(; ylabel = L"\tilde{I}", xlabel = L"N_t^2/N_s^2")
-    Nt = 0
-    for file in files
-        fid = h5open(file)
-        runs = keys(fid)
-        runs = filter(!startswith("provenance"), runs)
-        x, I, ΔI = zeros(length(runs)), zeros(length(runs)), zeros(length(runs))
-        for (i, r) in enumerate(runs)
+
+    fid = h5open(file)
+    runs = keys(fid)
+    runs = filter(!startswith("provenance"), runs)
+    Nts = unique([ read(fid[r], "Nt")  for r in runs])
+
+    for Nt in Nts
+        runs_Nt = filter(r -> read(fid[r], "Nt") == Nt, runs)
+        x, I, ΔI = zeros(length(runs_Nt)), zeros(length(runs_Nt)), zeros(length(runs_Nt))
+        for (i, r) in enumerate(runs_Nt)
             try
-            beta, Pmin, Pmax, inter, Nt, Ns = beta_Pmin_Pmax_jackknife(fid, r)
-            I[i], ΔI[i] = apply_jackknife(inter)
-            x[i] = inv(Ns / Nt)
+                beta, Pmin, Pmax, inter, Nt, Ns = beta_Pmin_Pmax_jackknife(fid, r)
+                I[i], ΔI[i] = apply_jackknife(inter)
+                x[i] = inv(Ns / Nt)
             catch
             end
         end
@@ -80,17 +83,16 @@ function parse_commandline()
         "--plotfile"
         help = "Where to save the plot"
         required = true
-        "arg"
-        help = "HDF5 files with sorted data for all Nt to be plotted"
+        "--h5file"
+        help = "HDF5 file containing the sorted results"
         required = true
-        nargs = '+'
     end
     return parse_args(s)
 end
 function main()
     args = parse_commandline()
     plotfile = args["plotfile"]
-    files = args["arg"]
+    files = args["h5file"]
     main(files, plotfile)
     return nothing
 end

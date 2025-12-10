@@ -41,20 +41,20 @@ rule parse_hdf5:
         julia_instantiated="tmp/julia_ready",
         metadata="metadata/runs_{group}.csv",
     output:
-        h5file="tmp/{group}/{group}_Nt{Nt}.hdf5",
+        h5file="tmp/{group}/{group}.hdf5",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file_unsorted {output.h5file} --metadata {input.metadata} --Nt {wildcards.Nt}'
+        'julia --project="." {input.script} --h5file_unsorted {output.h5file} --metadata {input.metadata}'
 
 
 rule sort_hdf5:
     input:
         script="scripts/sort_an.jl",
-        h5file="tmp/{group}/{group}_Nt{Nt}.hdf5",
+        h5file="tmp/{group}/{group}.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
     conda:
         "envs/environment.yml"
     shell:
@@ -64,10 +64,10 @@ rule sort_hdf5:
 rule tables:
     input:
         script="scripts/tables.jl",
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
-        table="tmp/{group}/tables/runs_Nt{Nt}.tex",
+        table="assets/{group}/tables/runs.tex",
     conda:
         "envs/environment.yml"
     shell:
@@ -76,7 +76,7 @@ rule tables:
 
 rule overview_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/trajectory_overview.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -89,7 +89,7 @@ rule overview_plots:
 
 rule an_trajectory_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/an_history.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -102,7 +102,7 @@ rule an_trajectory_plots:
 
 rule free_energy_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/free_energy.jl",
         julia_instantiated="tmp/julia_ready",
         entropy="metadata/critical_entropy_{group}.csv",
@@ -116,7 +116,7 @@ rule free_energy_plots:
 
 rule an_volume_comparison_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/compare_volumes.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -124,12 +124,12 @@ rule an_volume_comparison_plots:
     conda:
         "envs/environment.yml"
     shell:
-        r'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --title "\$N_t={wildcards.Nt}\$"'
+        r'julia --project="." {input.script} --h5file {input.h5file} --Nt {wildcards.Nt} --plot_file {output.plot} --title "\$N_t={wildcards.Nt}\$"'
 
 
 rule an_replica_comparison_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/compare_replicas.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -142,7 +142,7 @@ rule an_replica_comparison_plots:
 
 rule entropy_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/entropy.jl",
         julia_instantiated="tmp/julia_ready",
         entropy="metadata/critical_entropy_{group}.csv",
@@ -151,12 +151,12 @@ rule entropy_plots:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --critical_entropy {input.entropy} --plot_file {output.plot}'
+        'julia --project="." {input.script} --h5file {input.h5file} --critical_entropy {input.entropy} --plot_file {output.plot} --Nt {wildcards.Nt}'
 
 
 rule critical_beta:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -164,12 +164,12 @@ rule critical_beta:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv}'
+        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --Nt {wildcards.Nt}'
 
 
 rule critical_cumulant:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/critical_cumulants.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -177,12 +177,12 @@ rule critical_cumulant:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv}'
+        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --Nt {wildcards.Nt}'
 
 
 rule critical_beta_two_to_one:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -190,12 +190,12 @@ rule critical_beta_two_to_one:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 2'
+        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 2 --Nt {wildcards.Nt}'
 
 
 rule critical_beta_one_to_two:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -203,12 +203,12 @@ rule critical_beta_one_to_two:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 1 --peak2 2'
+        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 1 --peak2 2 --Nt {wildcards.Nt}'
 
 
 rule double_gaussian_volume_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/double_gaussian_volumes.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -216,7 +216,7 @@ rule double_gaussian_volume_plots:
     conda:
         "envs/environment.yml"
     shell:
-        r'julia --project="." {input.script} --h5file {input.h5file} --plotfile {output.plot} --title "\$N_t={wildcards.Nt}\$"'
+        r'julia --project="." {input.script} --h5file {input.h5file} --plotfile {output.plot} --Nt {wildcards.Nt} --title "\$N_t={wildcards.Nt}\$"'
 
 
 rule critical_beta_volume_plots:
@@ -236,7 +236,7 @@ rule critical_beta_volume_plots:
 
 rule double_gaussian_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -249,7 +249,7 @@ rule double_gaussian_plots:
 
 rule double_gaussian_plots_two_to_one:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -262,7 +262,7 @@ rule double_gaussian_plots_two_to_one:
 
 rule double_gaussian_plots_one_to_two:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
@@ -275,10 +275,9 @@ rule double_gaussian_plots_one_to_two:
 
 rule cumulant_plots:
     input:
-        h5file="data_assets/{group}/{group}_Nt{Nt}_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/plot_cumulants.jl",
         julia_instantiated="tmp/julia_ready",
-        csv="tmp/{group}/critical_beta_cumulants_Nt{Nt}.csv",
     output:
         plot_binder_cumulant="assets/{group}/plots/binder_cumulant_Nt{Nt}.pdf",
         plot_specific_heat="assets/{group}/plots/specific_heat_Nt{Nt}.pdf",
@@ -286,21 +285,20 @@ rule cumulant_plots:
         "envs/environment.yml"
     threads: workflow.cores / 2
     shell:
-        'julia --threads {threads} --project="." {input.script} --h5file {input.h5file} --critical_values {input.csv} --plot_file_binder_cumulant {output.plot_binder_cumulant} --plot_file_specific_heat {output.plot_specific_heat} --Nt {wildcards.Nt}'
+        'julia --threads {threads} --project="." {input.script} --h5file {input.h5file} --plot_file_binder_cumulant {output.plot_binder_cumulant} --plot_file_specific_heat {output.plot_specific_heat} --Nt {wildcards.Nt}'
 
 
 rule surface_tension_plot:
     input:
         script="scripts/surface_tension_term.jl",
-        h5file_Nt4="data_assets/{group}/{group}_Nt4_sorted.hdf5",
-        h5file_Nt5="data_assets/{group}/{group}_Nt5_sorted.hdf5",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
         plot="assets/{group}/plots/surface_tension_term.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --plotfile {output.plot} {input.h5file_Nt4} {input.h5file_Nt5}'
+        'julia --project="." {input.script} --plotfile {output.plot} --h5file {input.h5file}'
 
 
 rule critical_beta_plot:
@@ -329,34 +327,6 @@ rule critical_beta_table:
         "envs/environment.yml"
     shell:
         'julia --project="." {input.script} --tex_file {output.textable} --input_cumulants {input.csv_cumulant} --input_histogram {input.csv_histogram} '
-
-
-rule definitions:
-    input:
-        script="scripts/definitions.jl",
-        h5file_Nt4="tmp/{group}/{group}_Nt4.hdf5",
-        h5file_Nt5="tmp/{group}/{group}_Nt5.hdf5",
-        julia_instantiated="tmp/julia_ready",
-    output:
-        definitions="assets/{group}/definitions/definitions.tex",
-    conda:
-        "envs/environment.yml"
-    shell:
-        'julia --project="." {input.script} --outfile {output.definitions} --h5file_Nt4 {input.h5file_Nt4} --h5file_Nt5 {input.h5file_Nt5} '
-
-
-rule combine_ensemble_tables:
-    input:
-        script="scripts/combine_tables.jl",
-        file1="tmp/{group}/tables/runs_Nt5.tex",
-        file2="tmp/{group}/tables/runs_Nt4.tex",
-        julia_instantiated="tmp/julia_ready",
-    output:
-        file_out="assets/{group}/tables/runs.tex",
-    conda:
-        "envs/environment.yml"
-    shell:
-        'julia --project="." {input.script} --outfile {output.file_out} --file1 {input.file1} --file2 {input.file2}'
 
 
 rule combine_csv:

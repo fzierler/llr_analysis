@@ -14,10 +14,11 @@ gr(
     left_margin = 0Plots.mm,
 )
 
-function plot_all_histogram_fits(file, plotfile, title)
+function plot_all_histogram_fits(file, plotfile, title, Nt)
     ispath(dirname(plotfile)) || mkpath(dirname(plotfile))
     fid = h5open(file)
-    runs = keys(fid)
+    runs = filter(!startswith("provenance"), keys(fid))
+    runs = filter(r -> read(fid[r], "Nt") == Nt, runs)
     plt = plot(title = title)
     for run in runs
         try
@@ -42,6 +43,10 @@ function parse_commandline()
         "--title"
         help = "Title of the plot"
         required = true
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        required = true
+        arg_type = Int
     end
     return parse_args(s)
 end
@@ -50,6 +55,7 @@ function main()
     file = args["h5file"]
     plotfile = args["plotfile"]
     title = args["title"]
-    return plot_all_histogram_fits(file, plotfile, title)
+    Nt = args["Nt"]
+    return plot_all_histogram_fits(file, plotfile, title, Nt)
 end
 main()

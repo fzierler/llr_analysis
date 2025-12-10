@@ -14,10 +14,11 @@ gr(
     left_margin = 0Plots.mm,
 )
 
-function all_critical_beta(file, outfile; A1 = 1, A2 = 1)
+function all_critical_beta(file, outfile, Nt; A1 = 1, A2 = 1)
     fid = h5open(file)
     runs = keys(fid)
     runs = filter(!startswith("provenance"), runs)
+    runs = filter(r -> read(fid[r], "Nt") == Nt, runs)
     header = !isfile(outfile)
     io = open(outfile, "a")
     print_provenance_csv(io)
@@ -53,6 +54,10 @@ function parse_commandline()
         help = "Ratio of peak heights used for finding the critical coupling"
         arg_type = Int
         default = 1
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        required = true
+        arg_type = Int
     end
     return parse_args(s)
 end
@@ -61,8 +66,9 @@ function main()
     file = args["h5file"]
     A1 = args["peak1"]
     A2 = args["peak2"]
+    Nt = args["Nt"]
     outfile = args["outfile"]
     isfile(outfile) && rm(outfile)
-    return all_critical_beta(file, outfile; A1 = A1, A2 = A2)
+    return all_critical_beta(file, outfile, Nt; A1 = A1, A2 = A2)
 end
 main()

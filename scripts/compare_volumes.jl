@@ -58,11 +58,12 @@ function a_vs_central_action_plot!(plt, h5id, runs::Vector; kws...)
     end
     return plt
 end
-function an_action_volumes(file, plotdest; title)
+function an_action_volumes(file, plotdest, Nt; title)
     ispath(dirname(plotdest)) || mkpath(dirname(plotdest))
     h5id = h5open(file)
     runs = keys(h5id)
     runs = filter(!startswith("provenance"), runs)
+    runs = filter(r -> read(h5id[r], "Nt") == Nt, runs)
     runs = largets_replica_runs(h5id, runs)
     plt = a_vs_central_action_plot(h5id, runs, lens = false)
     title = latexstring(title)
@@ -81,6 +82,10 @@ function parse_commandline()
         "--title"
         help = "Title of the plot"
         required = true
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        required = true
+        arg_type = Int
     end
     return parse_args(s)
 end
@@ -89,6 +94,7 @@ function main()
     file = args["h5file"]
     plotdst = args["plot_file"]
     title = args["title"]
-    return an_action_volumes(file, plotdst; title)
+    Nt = args["Nt"]
+    return an_action_volumes(file, plotdst, Nt; title)
 end
 main()

@@ -55,11 +55,12 @@ function cumulants(h5dset, run, β)
     end
     return β, CV, BC
 end
-function cumulant_plots(h5file, Nt, critical_values)
+function cumulant_plots(h5file, Nt)
     fid = h5open(h5file)
     pltCV = plot(legend = :outerright, xlabel = L"\beta", ylabel = L"C_V(\beta)", title = L"N_t = %$Nt")
     pltBC = plot(legend = :outerright, xlabel = L"\beta", ylabel = L"B_V(\beta) - 2/3", title = L"N_t = %$Nt")
     runs = filter(!startswith("provenance"), keys(fid))
+    runs = filter(r -> read(fid[r], "Nt") == Nt, runs)
     runs = largets_replica_runs(fid, runs)
 
     # first determine a good plotting range
@@ -106,16 +107,13 @@ function parse_commandline()
         help = "Nt of the runs to be plotted of the plot"
         required = true
         arg_type = Int
-        "--critical_values"
-        help = "CSV file containing the critical values of beta"
-        default = ""
     end
     return parse_args(s)
 end
 
 function main()
     args = parse_commandline()
-    pltCV, pltBC = cumulant_plots(args["h5file"], args["Nt"], args["critical_values"])
+    pltCV, pltBC = cumulant_plots(args["h5file"], args["Nt"])
     savefig(pltCV, args["plot_file_specific_heat"])
     savefig(pltBC, args["plot_file_binder_cumulant"])
     return nothing
