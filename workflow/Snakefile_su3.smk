@@ -8,15 +8,15 @@ rule all:
     input:
         overview_plots=expand(
             "tmp/su3/plots/overview/{dataset}.pdf",
-            dataset=list_hdf5_datasets(metadata),
+            dataset=list_datasets(metadata),
         ),
         an_trajectory_plots=expand(
             "tmp/su3/plots/an_trajectories/{dataset}.pdf",
-            dataset=list_hdf5_datasets(metadata),
+            dataset=list_datasets(metadata),
         ),
         free_energy_plots_Nt4=expand(
             "assets/su3/plots/free_energy/free_energy_{dataset}.pdf",
-            dataset=list_hdf5_datasets_Nt(metadata, 4),
+            dataset=list_datasets_Nt(metadata, 4),
         ),
         an_volume_plots="assets/su3/plots/an_volume_Nt4.pdf",
         entropy_plots="assets/su3/plots/entropy_Nt4.pdf",
@@ -24,7 +24,7 @@ rule all:
         double_gaussian_volume_plots="assets/su3/plots/plaquette_distribution_Nt4_volumes.pdf",
         double_gaussian_plots_Nt4=expand(
             "assets/su3/plots/plaquette_distribution/pd_{dataset}.pdf",
-            dataset=list_hdf5_datasets_Nt(metadata, 4),
+            dataset=list_datasets_Nt(metadata, 4),
         ),
         plot_binder_cumulant="assets/su3/plots/binder_cumulant_Nt4.pdf",
         plot_specific_heat="assets/su3/plots/specific_heat_Nt4.pdf",

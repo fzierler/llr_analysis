@@ -2,7 +2,7 @@ import functools
 import pandas as pd
 
 
-def list_hdf5_datasets_Nt(metadata, Nt):
+def list_datasets_Nt(metadata, Nt):
     return [
         f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
         for dataset in metadata.itertuples()
@@ -10,7 +10,7 @@ def list_hdf5_datasets_Nt(metadata, Nt):
     ]
 
 
-def list_hdf5_datasets(metadata):
+def list_datasets(metadata):
     return [
         f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
         for dataset in metadata.itertuples()
@@ -154,19 +154,6 @@ rule entropy_plots:
         'julia --project="." {input.script} --h5file {input.h5file} --critical_entropy {input.entropy} --plot_file {output.plot} --Nt {wildcards.Nt}'
 
 
-rule critical_beta:
-    input:
-        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
-        script="scripts/critical_beta.jl",
-        julia_instantiated="tmp/julia_ready",
-    output:
-        csv="tmp/{group}/critical_beta_Nt{Nt}.csv",
-    conda:
-        "envs/environment.yml"
-    shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --Nt {wildcards.Nt}'
-
-
 rule critical_cumulant:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
@@ -180,30 +167,17 @@ rule critical_cumulant:
         'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --Nt {wildcards.Nt}'
 
 
-rule critical_beta_two_to_one:
+rule critical_beta_ratio:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/critical_beta.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        csv="tmp/{group}/critical_beta_2:1_Nt{Nt}.csv",
+        csv="tmp/{group}/critical_beta_{peak1}:{peak2}_Nt{Nt}.csv",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 2 --Nt {wildcards.Nt}'
-
-
-rule critical_beta_one_to_two:
-    input:
-        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
-        script="scripts/critical_beta.jl",
-        julia_instantiated="tmp/julia_ready",
-    output:
-        csv="tmp/{group}/critical_beta_1:2_Nt{Nt}.csv",
-    conda:
-        "envs/environment.yml"
-    shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 1 --peak2 2 --Nt {wildcards.Nt}'
+        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv} --peak1 {wildcards.peak1} --peak2 {wildcards.peak2} --Nt {wildcards.Nt}'
 
 
 rule double_gaussian_volume_plots:
@@ -222,7 +196,7 @@ rule double_gaussian_volume_plots:
 rule critical_beta_volume_plots:
     input:
         script="scripts/plot_beta.jl",
-        critical_beta="tmp/{group}/critical_beta_Nt{Nt}.csv",
+        critical_beta_one_to_one="tmp/{group}/critical_beta_1:1_Nt{Nt}.csv",
         critical_beta_two_to_one="tmp/{group}/critical_beta_2:1_Nt{Nt}.csv",
         critical_beta_one_to_two="tmp/{group}/critical_beta_1:2_Nt{Nt}.csv",
         julia_instantiated="tmp/julia_ready",
@@ -231,46 +205,20 @@ rule critical_beta_volume_plots:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --plotfile {output.plot} {input.critical_beta} {input.critical_beta_two_to_one} {input.critical_beta_one_to_two}'
+        'julia --project="." {input.script} --plotfile {output.plot} {input.critical_beta_one_to_one} {input.critical_beta_two_to_one} {input.critical_beta_one_to_two}'
 
 
-rule double_gaussian_plots:
+rule double_gaussian_plots_ratios:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/{group}/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="assets/{group}/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_{peak1}:{peak2}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
-
-
-rule double_gaussian_plots_two_to_one:
-    input:
-        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
-        script="scripts/double_gaussian_fit.jl",
-        julia_instantiated="tmp/julia_ready",
-    output:
-        plot="assets/{group}/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_two_to_one.pdf",
-    conda:
-        "envs/environment.yml"
-    shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --peak1 2 --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
-
-
-rule double_gaussian_plots_one_to_two:
-    input:
-        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
-        script="scripts/double_gaussian_fit.jl",
-        julia_instantiated="tmp/julia_ready",
-    output:
-        plot="assets/{group}/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_one_to_two.pdf",
-    conda:
-        "envs/environment.yml"
-    shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --peak2 2 --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --peak1 {wildcards.peak1} --peak2 {wildcards.peak2} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
 
 
 rule cumulant_plots:
@@ -305,7 +253,7 @@ rule critical_beta_plot:
     input:
         script="scripts/plot_critical_beta.jl",
         csv_cumulant="tmp/{group}/critical_beta_cumulants_Nt{Nt}.csv",
-        csv_histogram="tmp/{group}/critical_beta_Nt{Nt}.csv",
+        csv_histogram="tmp/{group}/critical_beta_1:1_Nt{Nt}.csv",
         julia_instantiated="tmp/julia_ready",
     output:
         plot="assets/{group}/plots/beta_critical_Nt{Nt}.pdf",
@@ -319,7 +267,7 @@ rule critical_beta_table:
     input:
         script="scripts/tex_critical_beta.jl",
         csv_cumulant="tmp/{group}/critical_beta_cumulants_Nt{Nt}.csv",
-        csv_histogram="tmp/{group}/critical_beta_Nt{Nt}.csv",
+        csv_histogram="tmp/{group}/critical_beta_1:1_Nt{Nt}.csv",
         julia_instantiated="tmp/julia_ready",
     output:
         textable="tmp/{group}/tables/beta_critical_Nt{Nt}.tex",
@@ -336,7 +284,7 @@ rule combine_csv:
         files_cumulants=expand(
             "tmp/{{group}}/critical_beta_cumulants_Nt{Nt}.csv", Nt=[4, 5]
         ),
-        files_critical=expand("tmp/{{group}}/critical_beta_Nt{Nt}.csv", Nt=[4, 5]),
+        files_critical=expand("tmp/{{group}}/critical_beta_1:1_Nt{Nt}.csv", Nt=[4, 5]),
         files_ratios=expand(
             "tmp/{{group}}/critical_beta_{r}_Nt{Nt}.csv", Nt=[4, 5], r=["1:2", "2:1"]
         ),

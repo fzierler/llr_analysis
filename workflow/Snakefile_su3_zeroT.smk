@@ -8,11 +8,11 @@ rule all:
     input:
         overview=expand(
             "tmp/su3_zeroT/plots/overview/{dataset}.pdf",
-            dataset=list_hdf5_datasets(metadata),
+            dataset=list_datasets(metadata),
         ),
         trajectory=expand(
             "tmp/su3_zeroT/plots/an_trajectories/{dataset}.pdf",
-            dataset=list_hdf5_datasets(metadata),
+            dataset=list_datasets(metadata),
         ),
         volume_comparison_Nt12="assets/su3_zeroT/plots/an_volume_Nt12.pdf",
         volume_comparison_Nt16="assets/su3_zeroT/plots/an_volume_Nt16.pdf",
