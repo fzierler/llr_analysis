@@ -14,7 +14,7 @@ gr(
     left_margin = 1Plots.mm,
 )
 
-function read_critical_betas(file, offset = 3)
+function read_critical_betas(file, Nt0, offset = 3)
     data, header = readdlm(file, ',', header = true, comments = true)
     Nt = data[:, 2 + offset]
     Ns = data[:, 3 + offset]
@@ -22,22 +22,23 @@ function read_critical_betas(file, offset = 3)
     A2 = data[:, 5 + offset]
     βc = data[:, 6 + offset]
     Δβc = data[:, 7 + offset]
-    return only(unique(Nt)), Ns, βc, Δβc, only(unique(A1)), only(unique(A2))
+    ind = findall(isequal(Nt0), Nt)
+    return only(unique(Nt[ind])), Ns[ind], βc[ind], Δβc[ind], only(unique(A1[ind])), only(unique(A2[ind]))
 end
-function plot_critical_beta!(plt, file; kws...)
-    Nt, L, βc, Δβc, A1, A2 = read_critical_betas(file)
+function plot_critical_beta!(plt, file, Nt0; kws...)
+    Nt, L, βc, Δβc, A1, A2 = read_critical_betas(file, Nt0)
     tks = (inv.(L), (L"1/%$Li" for Li in L))
     lbl = L"$N_t=%$Nt$: ratio %$A1:%$A2"
     scatter!(plt, inv.(L), βc, xticks = tks, yerr = Δβc, label = lbl; kws...)
     return nothing
 end
-function plot_critical_beta(files, plotfile)
+function plot_critical_beta(files, plotfile, Nt)
     ispath(dirname(plotfile)) || mkpath(dirname(plotfile))
     plt = plot(ylabel = L"$\beta_{CV}(P)$", xlabel = L"$1/N_s$")
     markers = (:circle, :hexagon, :rect)
     colors = (:orange, :blue, :green)
     for (i, file) in enumerate(files)
-        plot_critical_beta!(plt, file; markershape = markers[i], color = colors[i], markeralpha = 0.8)
+        plot_critical_beta!(plt, file, Nt; markershape = markers[i], color = colors[i], markeralpha = 0.8)
     end
     plot!(plt; xflip = false, legend = :topright)
     return savefig(plt, plotfile)
@@ -49,6 +50,10 @@ function parse_commandline()
         "--plotfile"
         help = "Where to save the plot"
         required = true
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        default = 0
+        arg_type = Int
         "arg"
         help = "CSV file(s) containing the values of critical beta"
         required = true
@@ -60,6 +65,7 @@ function main()
     args = parse_commandline()
     plotfile = args["plotfile"]
     file = args["arg"]
-    return plot_critical_beta(file, plotfile)
+    Nt = args["Nt"]
+    return plot_critical_beta(file, plotfile, Nt)
 end
 main()

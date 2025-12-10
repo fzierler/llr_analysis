@@ -18,7 +18,9 @@ function all_critical_beta(file, outfile, Nt; A1 = 1, A2 = 1)
     fid = h5open(file)
     runs = keys(fid)
     runs = filter(!startswith("provenance"), runs)
-    runs = filter(r -> read(fid[r], "Nt") == Nt, runs)
+    if !iszero(Nt)
+        runs = filter(r -> read(fid[r], "Nt") == Nt, runs)
+    end
     header = !isfile(outfile)
     io = open(outfile, "a")
     print_provenance_csv(io)
@@ -56,7 +58,7 @@ function parse_commandline()
         default = 1
         "--Nt"
         help = "Nt of the runs to be plotted of the plot"
-        required = true
+        default = 0
         arg_type = Int
     end
     return parse_args(s)

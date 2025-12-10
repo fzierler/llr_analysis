@@ -140,7 +140,9 @@ function critical_cumulants_all_runs(h5file, outfile, Nt)
     h5dset = h5open(h5file)
     runs = keys(h5dset)
     runs = filter(!startswith("provenance"), runs)
-    runs = filter(r -> read(h5dset[r], "Nt") == Nt, runs)
+    if !isnothing(Nt)
+        runs = filter(r -> read(h5dset[r], "Nt") == Nt, runs)
+    end
     setprecision(BigFloat, 106)
     io = open(outfile, "w")
     print_provenance_csv(io)
@@ -171,7 +173,7 @@ function parse_commandline()
         required = true
         "--Nt"
         help = "Nt of the runs to be plotted of the plot"
-        required = true
+        default = 0
         arg_type = Int
     end
     return parse_args(s)
@@ -181,6 +183,7 @@ function main()
     h5file = args["h5file"]
     outfile = args["outfile"]
     Nt = args["Nt"]
+    Nt = iszero(Nt) ? nothing : Nt
     return critical_cumulants_all_runs(h5file, outfile, Nt)
 end
 main()

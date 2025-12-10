@@ -15,51 +15,25 @@ gr(
     left_margin = 1Plots.mm,
 )
 
-function read_critical_betas(file; offset = 0)
+function read_critical_betas(file, Nt0; offset = 0)
     data, header = readdlm(file, ',', header = true, comments = true)
     runs = data[:, 4]
     Nt = data[:, 5]
     Ns = data[:, 6]
     βc = data[:, 9 + offset]
     Δβc = data[:, 10 + offset]
-    return runs, Nt, Ns, βc, Δβc
-end
-function main_table(file1, file2, file_tex)
-    runs11, Nt11, Ns11, βc11, Δβc11 = read_critical_betas(file1)
-    runsCV, NtCV, NsCV, βcCV, ΔβcCV = read_critical_betas(file2; offset = -2)
-    runsBC, NtBC, NsBC, βcBC, ΔβcBC = read_critical_betas(file2)
-
-    io = open(file_tex, "w")
-    print_provenance_tex(io)
-    header = L"""\begin{tabular}{|c|c|c|c|c|c|} \hline
-    $N_t$ & $N_s$ & $N_{\rm rep}$ & $\beta_{CV}(P)$ & $\beta_{CV}(C_V)$ & $\beta_{CV}(B_V)$ \\ \hline \hline"""
-    footer = """\\hline \\hline
-    \\end{tabular}"""
-
-    @assert Nt11 == NtCV == NtBC
-    println(io, header)
-    for i in eachindex(Nt11, NtCV, NtBC)
-        rx = r"[0-9]x[0-9]+_([0-9]+)replicas"
-        m = match(rx, runs11[i])
-        replicas = m.captures[1]
-        str_11 = errorstring(βc11[i], Δβc11[i])
-        str_CV = errorstring(βcCV[i], ΔβcCV[i])
-        str_BC = errorstring(βcBC[i], ΔβcBC[i])
-        Nt, Ns = Nt11[i], Ns11[i]
-        println(io, "$Nt & $Ns & $replicas & $str_11 & $str_CV & $str_BC \\\\")
-    end
-    println(io, footer)
-    return close(io)
+    ind = findall(isequal(Nt0), Nt)
+    return runs[ind], Nt[ind], Ns[ind], βc[ind], Δβc[ind]
 end
 function plot_critical_beta!(plt, Ns, βc, Δβc; kws...)
     tks = (inv.(Ns), (L"1/%$Li" for Li in Ns))
     scatter!(plt, inv.(Ns), βc, xticks = tks, yerr = Δβc; kws...)
     return nothing
 end
-function main_plot(file1, file2, outfile)
-    runs11, Nt11, Ns11, βc11, Δβc11 = read_critical_betas(file1)
-    runsCV, NtCV, NsCV, βcCV, ΔβcCV = read_critical_betas(file2; offset = -2)
-    runsBC, NtBC, NsBC, βcBC, ΔβcBC = read_critical_betas(file2)
+function main_plot(file1, file2, outfile, Nt)
+    runs11, Nt11, Ns11, βc11, Δβc11 = read_critical_betas(file1, Nt)
+    runsCV, NtCV, NsCV, βcCV, ΔβcCV = read_critical_betas(file2, Nt; offset = -2)
+    runsBC, NtBC, NsBC, βcBC, ΔβcBC = read_critical_betas(file2, Nt)
 
     @assert Nt11 == NtCV == NtBC
     Nt = first(Nt11)
@@ -85,11 +59,16 @@ function parse_commandline()
         "--plot_file"
         help = "Where to save the table"
         required = true
+        "--Nt"
+        help = "Nt of the runs to be plotted of the plot"
+        default = 0
+        arg_type = Int
     end
     return parse_args(s)
 end
 args = parse_commandline()
+Nt = args["Nt"]
 file1 = args["input_histogram"]
 file2 = args["input_cumulants"]
 file_plot = args["plot_file"]
-main_plot(file1, file2, file_plot)
+main_plot(file1, file2, file_plot, Nt)

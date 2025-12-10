@@ -43,5 +43,6 @@ rule all:
         ensembles_combined="assets/sp4/tables/runs.tex",
         file_out="assets/sp4/tables/beta_critical.tex",
         out_cumulants="data_assets/sp4/critical_beta_cumulants.csv",
-        out_critical="data_assets/sp4/critical_beta_distribution.csv",
-        out_ratios="data_assets/sp4/critical_beta_ratios.csv",
+        out_critical11="data_assets/sp4/critical_beta_1:1.csv",
+        out_critical12="data_assets/sp4/critical_beta_2:1.csv",
+        out_critical21="data_assets/sp4/critical_beta_1:2.csv",
