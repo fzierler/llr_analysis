@@ -36,23 +36,29 @@ end
 function parse_dS0(file)
     dS0 = NaN
     pattern = "[MAIN][0]LLR Delta S"
-    for line in eachline(HiRepParsing.makestream(file))
+    io = HiRepParsing.makestream(file)
+    for line in eachline(io)
         if startswith(line, pattern)
             dS0 = parse(Float64, line[(length(pattern) + 1):end])
+            close(io)
             return dS0
         end
     end
+    close(io)
     return dS0
 end
 function parse_initial_a(file)
     a0 = NaN
     pattern = "[MAIN][0]LLR Initial a"
-    for line in eachline(HiRepParsing.makestream(file))
+    io = HiRepParsing.makestream(file)
+    for line in eachline(io)
         if startswith(line, pattern)
             a0 = parse(Float64, line[(length(pattern) + 1):end])
+            close(io)
             return a0
         end
     end
+    close(io)
     return a0
 end
 function _parse_data!(array, string; n)
@@ -63,7 +69,7 @@ function _parse_data!(array, string; n)
     end
     return
 end
-function parse_llr(file; skiplines = Int[])
+function parse_llr(file)
     pattern_poly = "[FUND_POLYAKOV][0]Polyakov direction 0 = "
     patternS0 = "[SWAP][10]New Rep Par S0 = "
     patternPl = r"^\[MAIN\]\[0\](NR )*Plaq a fixed ([0-9]+.[0-9]+)"
@@ -89,10 +95,8 @@ function parse_llr(file; skiplines = Int[])
     is_fxa = false
 
     # keep track of line number so that we can skip them if specified by skiplines
-    for (line_no, line) in enumerate(eachline(HiRepParsing.makestream(file)))
-        # check if we want to skip the current line
-        line_no ∈ skiplines && continue
-        # then continue with the usual parsing
+    io = HiRepParsing.makestream(file)
+    for line in eachline(io)
         if startswith(line, "[SYSTEM][0]Process finalized.")
             is_fxa = false
         end
@@ -144,6 +148,7 @@ function parse_llr(file; skiplines = Int[])
             append!(poly, tmp_poly[1] + im * tmp_poly[2])
         end
     end
+    close(io)
     # assert that we always have used a consistent number of
     llr_therm = only(unique(llr_therm))
     llr_meas = only(unique(llr_meas))
