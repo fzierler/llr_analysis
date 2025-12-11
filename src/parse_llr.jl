@@ -15,7 +15,10 @@ function get_repeat_and_replica_dirs(base_dir, filename, skip_repeats = String[]
         # If not, then skip this repeat. This scenario rarely happens and only
         # has been seen in thermalisation
         files = joinpath.(Ref(base_dir), Ref(repeat), replica_dirs, Ref(filename))
-        if all(isfile, files)
+        # Here, I am adding the option to consider zstd compressed files
+        files_zst = joinpath.(Ref(base_dir), Ref(repeat), replica_dirs, Ref(filename * ".zst"))
+        files_zstd = joinpath.(Ref(base_dir), Ref(repeat), replica_dirs, Ref(filename * ".zstd"))
+        if all(isfile, files) || all(isfile, files_zst) || all(isfile, files_zstd)
             dir_dict[repeat] = replica_dirs
         else
             @warn "directory $(basename(base_dir)), repeat $repeat: some output files are missing/empty"
@@ -33,7 +36,7 @@ end
 function parse_dS0(file)
     dS0 = NaN
     pattern = "[MAIN][0]LLR Delta S"
-    for line in eachline(file)
+    for line in eachline(HiRepParsing.makestream(file))
         if startswith(line, pattern)
             dS0 = parse(Float64, line[(length(pattern) + 1):end])
             return dS0
@@ -44,7 +47,7 @@ end
 function parse_initial_a(file)
     a0 = NaN
     pattern = "[MAIN][0]LLR Initial a"
-    for line in eachline(file)
+    for line in eachline(HiRepParsing.makestream(file))
         if startswith(line, pattern)
             a0 = parse(Float64, line[(length(pattern) + 1):end])
             return a0
@@ -86,7 +89,7 @@ function parse_llr(file; skiplines = Int[])
     is_fxa = false
 
     # keep track of line number so that we can skip them if specified by skiplines
-    for (line_no, line) in enumerate(eachline(file))
+    for (line_no, line) in enumerate(eachline(HiRepParsing.makestream(file)))
         # check if we want to skip the current line
         line_no ∈ skiplines && continue
         # then continue with the usual parsing

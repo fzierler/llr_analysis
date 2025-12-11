@@ -16,6 +16,9 @@ using Peaks
 using Roots
 using LsqFit
 using PCHIPInterpolation
+# compression support
+using TranscodingStreams
+using CodecZstd
 
 include("errorstring.jl")
 export errorstring

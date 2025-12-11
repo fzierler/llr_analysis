@@ -27,6 +27,7 @@ Quadmath = "be4d8f0f-7fa4-5f49-b795-2f01399ab2dd"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+TranscodingStreams = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 
 [compat]
 ArgParse = "1.2.0"
@@ -47,3 +48,10 @@ Quadmath = "0.5.13"
 Roots = "2.2.7"
 Statistics = "1.10.0"
 StatsBase = "0.34.4"
+TranscodingStreams = "0.11.3"
+
+[sources.HiRepParsing]
+path = "libs/HiRepParsing"
+
+[sources.MadrasSokal]
+path = "libs/MadrasSokal"

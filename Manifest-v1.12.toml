@@ -2,7 +2,7 @@
 
 julia_version = "1.12.5"
 manifest_format = "2.0"
-project_hash = "56fe2f7b3f2c18f894d2164dfb02a80edc05b808"
+project_hash = "24d479c47d4b49880907d8613ec025f46ad8d95b"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "f7304359109c768cf32dc5fa2d371565bb63b68a"
@@ -670,7 +670,7 @@ uuid = "88015f11-f218-50d7-93a8-a6af411a945d"
 version = "4.0.1+0"
 
 [[deps.LLRParsing]]
-deps = ["ArgParse", "BenchmarkTools", "CodecZstd", "Dates", "HDF5", "HiRepParsing", "InteractiveUtils", "LaTeXStrings", "LibGit2", "LinearAlgebra", "LsqFit", "MadrasSokal", "NaturalSort", "PCHIPInterpolation", "PDFmerger", "Parsers", "Peaks", "Plots", "ProgressMeter", "Quadmath", "Roots", "Statistics", "StatsBase"]
+deps = ["ArgParse", "BenchmarkTools", "CodecZstd", "Dates", "HDF5", "HiRepParsing", "InteractiveUtils", "LaTeXStrings", "LibGit2", "LinearAlgebra", "LsqFit", "MadrasSokal", "NaturalSort", "PCHIPInterpolation", "PDFmerger", "Parsers", "Peaks", "Plots", "ProgressMeter", "Quadmath", "Roots", "Statistics", "StatsBase", "TranscodingStreams"]
 path = "."
 uuid = "c3118f9c-a4de-4e0f-9f06-ac8db61d0145"
 version = "0.1.0"
