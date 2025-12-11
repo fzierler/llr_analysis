@@ -1,4 +1,4 @@
-function get_repeat_and_replica_dirs(base_dir, skip_repeats = String[])
+function get_repeat_and_replica_dirs(base_dir, filename, skip_repeats = String[])
     # Obtain all directories containing repeats and sort them
     repeat_dirs = filter(str -> all(isdigit, str), readdir(base_dir))
     sort!(repeat_dirs, lt = natural)
@@ -14,7 +14,7 @@ function get_repeat_and_replica_dirs(base_dir, skip_repeats = String[])
         # check if there exists an ouput file for every replica in this repeat
         # If not, then skip this repeat. This scenario rarely happens and only
         # has been seen in thermalisation
-        files = joinpath.(Ref(base_dir), Ref(repeat), replica_dirs, Ref("out_0"))
+        files = joinpath.(Ref(base_dir), Ref(repeat), replica_dirs, Ref(filename))
         if all(isfile, files)
             dir_dict[repeat] = replica_dirs
         else
@@ -23,10 +23,10 @@ function get_repeat_and_replica_dirs(base_dir, skip_repeats = String[])
     end
     return dir_dict
 end
-function _all_files_from_dict(dir, replica_dirs)
+function _all_files_from_dict(dir, replica_dirs, filename)
     files = AbstractString[]
     for repeat in keys(replica_dirs), rep in replica_dirs[repeat]
-        push!(files, joinpath(dir, repeat, rep, "out_0"))
+        push!(files, joinpath(dir, repeat, rep, filename))
     end
     return files
 end
@@ -143,13 +143,13 @@ function parse_llr(file; skiplines = Int[])
     # end function and returned parsed information
     return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas
 end
-function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[])
+function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filename = "out_0")
     fid = h5open(h5file, "cw")
 
     # get all repeats and replicas and store that information for future use
-    replica_dirs = get_repeat_and_replica_dirs(dir, skip_repeats)
+    replica_dirs = get_repeat_and_replica_dirs(dir, filename, skip_repeats)
     repeats = sort(collect(keys(replica_dirs)), lt = natural)
-    files = _all_files_from_dict(dir, replica_dirs)
+    files = _all_files_from_dict(dir, replica_dirs, filename)
     N_repeats = length(repeats)
     if isempty(repeats)
         @warn "No non-emtpy logfiles available for $dir"
@@ -169,7 +169,7 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[])
 
     @showprogress desc = "parsing $name" for repeat in repeats
         for rep in replica_dirs[repeat]
-            file = joinpath(dir, repeat, rep, "out_0")
+            file = joinpath(dir, repeat, rep, filename)
             a0 = parse_initial_a(file)
             dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, llr_therm, llr_meas = parse_llr(file)
             write(fid, joinpath(name, repeat, rep, "dS0"), dS0)
