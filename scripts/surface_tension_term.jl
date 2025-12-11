@@ -8,7 +8,7 @@ using ArgParse
 gr(
     size = (425, 282),
     fontfamily = "Computer Modern",
-    legend = :topleft,
+    legend = :bottomright,
     frame = :box,
     titlefontsize = 10,
     legendfontsize = 7,
