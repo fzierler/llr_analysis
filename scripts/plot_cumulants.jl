@@ -67,10 +67,14 @@ function cumulant_plots(h5file, Nt)
     β_min, β_max = +Inf, -Inf
     for r in runs
         a, _, _, _ = a_vs_central_action(fid, r)
-        p_ind = only(findmaxima(a, 5).indices)
-        m_ind = only(findminima(a, 5).indices)
-        δ = m_ind - p_ind
-        β_min, β_max = a[p_ind - δ], a[m_ind + 2δ]
+        β_min, β_max = extrema(a)
+        try
+            p_ind = only(findmaxima(a, 5).indices)
+            m_ind = only(findminima(a, 5).indices)
+            δ = m_ind - p_ind
+            β_min, β_max = a[p_ind - δ], a[m_ind + 2δ]
+        catch
+        end
     end
 
     for r in runs
