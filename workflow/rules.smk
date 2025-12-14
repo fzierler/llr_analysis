@@ -1,5 +1,8 @@
 import functools
 import pandas as pd
+import os
+
+os.environ["GKSwstype"] = "100"
 
 
 def list_datasets_Nt(metadata, Nt):
