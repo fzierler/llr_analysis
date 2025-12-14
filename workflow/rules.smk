@@ -80,7 +80,7 @@ rule overview_plots:
         script="scripts/trajectory_overview.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="tmp/{group}/plots/overview/{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="{loc}/{group}/plots/overview/{Nt}x{Ns}_{Nreplicas}replicas.pdf",
     conda:
         "envs/environment.yml"
     shell:
@@ -93,7 +93,7 @@ rule an_trajectory_plots:
         script="scripts/an_history.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="tmp/{group}/plots/an_trajectories/{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="{loc}/{group}/plots/an_trajectories/{Nt}x{Ns}_{Nreplicas}replicas.pdf",
     conda:
         "envs/environment.yml"
     shell:
