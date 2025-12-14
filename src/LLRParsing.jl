@@ -20,6 +20,8 @@ using PCHIPInterpolation
 using TranscodingStreams
 using CodecZstd
 
+include("errors.jl")
+export mean_std_of_mean_cov, mean_std_of_mean, apply_jackknife
 include("errorstring.jl")
 export errorstring
 include("parse_std.jl")

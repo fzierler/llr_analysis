@@ -41,13 +41,9 @@ function thermodynamic_potentials_repeats(a, S0, V; s0 = 0.0)
 end
 function thermodynamic_potentials(a, S0, V; kws...)
     t_r, f_r, s_r = thermodynamic_potentials_repeats(a, S0, V; kws...)
-    N = size(t_r, 2)
-    t = dropdims(mean(t_r, dims = 2), dims = 2)
-    f = dropdims(mean(f_r, dims = 2), dims = 2)
-    s = dropdims(mean(s_r, dims = 2), dims = 2)
-    Δt = dropdims(std(t_r, dims = 2), dims = 2) ./ sqrt(N)
-    Δf = dropdims(std(f_r, dims = 2), dims = 2) ./ sqrt(N)
-    Δs = dropdims(std(s_r, dims = 2), dims = 2) ./ sqrt(N)
+    t, Δt = mean_std_of_mean(t_r, dims = 2)
+    f, Δf = mean_std_of_mean(f_r, dims = 2)
+    s, Δs = mean_std_of_mean(s_r, dims = 2)
     return t, Δt, f, Δf, s, Δs
 end
 function plot_free_energies(file, plotdir, critical_entropy)

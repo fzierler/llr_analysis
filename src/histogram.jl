@@ -168,16 +168,12 @@ function probability_density_repeats(a, S, beta, V; nbins = length(S), normalize
 end
 function probability_density(fid, run, beta; kws...)
     ups, prob, V, dS = probability_density_repeats(fid, run, beta; kws...)
-    P = dropdims(mean(prob, dims = 2), dims = 2)
-    ΔP = dropdims(std(prob, dims = 2), dims = 2) / sqrt(size(prob)[2])
-    covP = cov(prob, dims = 2) / size(prob)[2]
+    P, ΔP, covP = mean_std_of_mean_cov(prob, dims = 2)
     return ups, P, ΔP, covP, V, dS
 end
 function probability_density(a, S, beta, V; kws...)
     ups, prob, V, dS = probability_density_repeats(a, S, beta, V; kws...)
-    P = dropdims(mean(prob, dims = 2), dims = 2)
-    ΔP = dropdims(std(prob, dims = 2), dims = 2) / sqrt(size(prob)[2])
-    covP = cov(prob, dims = 2) / size(prob)[2]
+    P, ΔP, covP = mean_std_of_mean_cov(prob, dims = 2)
     return ups, P, ΔP, covP, V, dS
 end
 function plot_plaquette_histogram!(plt, fid, run, beta; kws...)

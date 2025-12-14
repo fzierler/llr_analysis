@@ -45,12 +45,6 @@ function beta_Pmin_Pmax_jackknife(fid, run; w = 5)
     end
     return beta, Pmin, Pmax, inter, Nt, Ns
 end
-function apply_jackknife(obs::AbstractVector)
-    N = length(obs)
-    O = mean(obs)
-    ΔO = sqrt(N - 1) * std(obs, corrected = false)
-    return O, ΔO
-end
 function main(file, plt_name)
     plt = plot(; ylabel = L"\tilde{I}", xlabel = L"N_t^2/N_s^2")
 

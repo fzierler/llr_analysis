@@ -22,10 +22,8 @@ function a_vs_central_action_repeats(h5dset, run; ind = nothing)
 end
 function a_vs_central_action(h5dset, run; ind = nothing)
     a, S, ind = a_vs_central_action_repeats(h5dset, run; ind)
-    N = size(a)[2]
     S0 = S[:, 1]
-    a0 = dropdims(mean(a, dims = 2), dims = 2)
-    Δa0 = dropdims(std(a, dims = 2), dims = 2) / sqrt(N)
+    a0, Δa0 = mean_std_of_mean(a, dims = 2)
     return a0, Δa0, S0, ind
 end
 function a_vs_central_action_plot(h5dset, runs; indices)
@@ -159,8 +157,7 @@ function plot_a_repeat_average!(plt, h5dset, run; replica)
     # remove repeats that have a zero-length trajectory
     filter!(x -> length(x) > 0, a)
     a_last = last.(a)
-    N_repeats = length(a_last)
-    a0, Δa = mean(a_last), std(a_last) / sqrt(N_repeats)
+    a0, Δa = mean_std_of_mean(a_last)
     hspan!(plt, [a0 - Δa, a0 + Δa], color = :black, alpha = 0.8, labels = L"a_n")
     return plt
 end

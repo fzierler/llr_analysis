@@ -76,13 +76,9 @@ function cumulant_plots(h5file, Nt)
     for r in runs
         β = range(start = β_min, stop = β_max, length = 100)
         β, CV0, BC0 = cumulants(fid, r, β)
-        repeats = size(CV0, 2)
 
-        CV = dropdims(mean(CV0, dims = 2), dims = 2)
-        ΔCV = dropdims(std(CV0, dims = 2), dims = 2) ./ sqrt.(repeats)
-        BC = dropdims(mean(BC0, dims = 2), dims = 2)
-        ΔBC = dropdims(std(BC0, dims = 2), dims = 2) ./ sqrt.(repeats)
-
+        CV, ΔCV = mean_std_of_mean(CV0, dims = 2)
+        BC, ΔBC = mean_std_of_mean(BC0, dims = 2)
         plot!(pltCV, β, CV, ribbon = ΔCV, label = LLRParsing.fancy_title(r), lw = 2)
         plot!(pltBC, β, BC .- 2 / 3, ribbon = ΔBC, label = LLRParsing.fancy_title(r), lw = 2)
     end

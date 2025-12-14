@@ -19,12 +19,6 @@ function jackknife_resample_1d_reduction(x, f)
     end
     return apply_jackknife(resampled)
 end
-function apply_jackknife(obs::AbstractVector)
-    N = length(obs)
-    O = mean(obs)
-    ΔO = sqrt(N - 1) * std(obs, corrected = false)
-    return O, ΔO
-end
 function std_observables(h5file, ens)
     f = h5open(h5file)
     plaq = f[ens]["plaquette"][]

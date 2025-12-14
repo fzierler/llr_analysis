@@ -61,8 +61,7 @@ function beta_extremal(β, obs; f = findmax)
         ind = f(obs[:, i])[2]
         βmax0[i] = β[ind]
     end
-    βmax = mean(βmax0)
-    Δβmax = std(βmax0) / sqrt(repeats)
+    βmax, Δβmax = mean_std_of_mean(βmax0)
     return βmax, Δβmax
 end
 function critical_beta_cumulants(h5dset, r; N, eps, min_iter = 5, max_iter = 20, w = 20)

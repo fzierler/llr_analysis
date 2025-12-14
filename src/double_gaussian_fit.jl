@@ -76,9 +76,7 @@ function histogram_jackknife_fit(fid, run)
         data = 6 .* V .* LLRParsing.modelDG(ups, fit.param)
         fitted[:, i] = data
     end
-    N = size(fitted)[2]
-    f = dropdims(mean(fitted, dims = 2), dims = 2)
-    Δf = sqrt(N - 1) * dropdims(std(fitted, dims = 2), dims = 2)
+    f, Δf = apply_jackknife(fitted, dims = 2)
     return ups, f, Δf
 end
 function βc_jackknife(fid, run; kws...)
@@ -89,9 +87,7 @@ function βc_jackknife(fid, run; kws...)
         ai = a_jk[:, i:i]
         beta[i] = LLRParsing.beta_at_equal_heights(ai, S, V; kws...)
     end
-    N = length(beta)
-    βc = mean(beta)
-    Δβc = sqrt(N - 1) * std(beta)
+    βc, Δβc = apply_jackknife(beta)
     return βc, Δβc
 end
 function histogram_jackknife_fit(fid, run, beta)
@@ -111,9 +107,7 @@ function histogram_jackknife_fit(fid, run, beta)
         data = 6 .* V .* LLRParsing.modelDG(ups, fit.param)
         fitted[:, i] = data
     end
-    N = size(fitted)[2]
-    f = dropdims(mean(fitted, dims = 2), dims = 2)
-    Δf = sqrt(N - 1) * dropdims(std(fitted, dims = 2), dims = 2)
+    f, Δf = apply_jackknife(fitted, dims = 2)
     return ups, f, Δf
 end
 function plot_double_gaussian_fit!(plt, fid, run, beta; kws...)
