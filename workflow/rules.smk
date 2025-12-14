@@ -127,6 +127,19 @@ rule an_volume_comparison_plots:
         r'julia --project="." {input.script} --h5file {input.h5file} --Nt {wildcards.Nt} --plot_file {output.plot} --title "\$N_t={wildcards.Nt}\$"'
 
 
+rule an_comparison_all:
+    input:
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
+        script="scripts/compare_volumes.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="assets/{group}/plots/an_all_runs.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        r'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --largets_replicas false --title ""'
+
+
 rule an_replica_comparison_plots:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",

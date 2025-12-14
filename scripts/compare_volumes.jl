@@ -73,7 +73,9 @@ function an_action_volumes(file, plotdest, Nt, Ns; title, largets_replicas)
         runs = largets_replica_runs(h5id, runs)
     end
     plt = a_vs_central_action_plot(h5id, runs, lens = false)
-    title = latexstring(title)
+    if !isempty(title)
+        title = latexstring(title)
+    end
     plot!(plt; legend = :bottomright, xlabel = L"u_p", ylabel = L"a_n", title)
     return savefig(plt, plotdest)
 end
