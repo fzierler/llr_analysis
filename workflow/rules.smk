@@ -130,14 +130,14 @@ rule an_volume_comparison_plots:
 rule an_replica_comparison_plots:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
-        script="scripts/compare_replicas.jl",
+        script="scripts/compare_volumes.jl",
         julia_instantiated="tmp/julia_ready",
     output:
         plot="assets/{group}/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --Nt {wildcards.Nt} --Ns {wildcards.Ns}'
+        'julia --project="." {input.script} --largets_replicas false --h5file {input.h5file} --plot_file {output.plot} --Nt {wildcards.Nt} --Ns {wildcards.Ns} --title "\$N_t\\times N_s^3={wildcards.Nt}\\times{wildcards.Ns}^3\$"'
 
 
 rule entropy_plots:

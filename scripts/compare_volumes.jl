@@ -58,13 +58,20 @@ function a_vs_central_action_plot!(plt, h5id, runs::Vector; kws...)
     end
     return plt
 end
-function an_action_volumes(file, plotdest, Nt; title)
+function an_action_volumes(file, plotdest, Nt, Ns; title, largets_replicas)
     ispath(dirname(plotdest)) || mkpath(dirname(plotdest))
     h5id = h5open(file)
     runs = keys(h5id)
     runs = filter(!startswith("provenance"), runs)
-    runs = filter(r -> read(h5id[r], "Nt") == Nt, runs)
-    runs = largets_replica_runs(h5id, runs)
+    if !iszero(Nt)
+        runs = filter(r -> read(h5id[r], "Nt") == Nt, runs)
+    end
+    if !iszero(Ns)
+        runs = filter(r -> read(h5id[r], "Ns") == Ns, runs)
+    end
+    if largets_replicas
+        runs = largets_replica_runs(h5id, runs)
+    end
     plt = a_vs_central_action_plot(h5id, runs, lens = false)
     title = latexstring(title)
     plot!(plt; legend = :bottomright, xlabel = L"u_p", ylabel = L"a_n", title)
@@ -84,8 +91,16 @@ function parse_commandline()
         required = true
         "--Nt"
         help = "Nt of the runs to be plotted of the plot"
-        required = true
+        default = 0
         arg_type = Int
+        "--Ns"
+        help = "Ns of the runs to be plotted of the plot"
+        default = 0
+        arg_type = Int
+        "--largets_replicas"
+        help = "include only run with largest number of replicas"
+        default = true
+        arg_type = Bool
     end
     return parse_args(s)
 end
@@ -95,6 +110,8 @@ function main()
     plotdst = args["plot_file"]
     title = args["title"]
     Nt = args["Nt"]
-    return an_action_volumes(file, plotdst, Nt; title)
+    Ns = args["Ns"]
+    largets_replicas = args["largets_replicas"]
+    return an_action_volumes(file, plotdst, Nt, Ns; title, largets_replicas)
 end
 main()
