@@ -21,7 +21,7 @@ rule all:
         an_volume=expand("assets/sp4/plots/an_volume_Nt{Nt}.pdf", Nt=[4, 5]),
         entropy=expand("assets/sp4/plots/entropy_Nt{Nt}.pdf", Nt=[4, 5]),
         critical_beta_volume=expand(
-            "assets/sp4/plots/critical_beta_volumes_Nt{Nt}.pdf", Nt=[4, 5]
+            "assets/sp4/plots/critical_beta_ratios_Nt{Nt}.pdf", Nt=[4, 5]
         ),
         double_gaussian_volume=expand(
             "assets/sp4/plots/plaquette_distribution_Nt{Nt}_volumes.pdf", Nt=[4, 5]

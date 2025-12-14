@@ -22,7 +22,7 @@ rule all:
         ),
         an_volume_plots="assets/su3/plots/an_volume_Nt4.pdf",
         entropy_plots="assets/su3/plots/entropy_Nt4.pdf",
-        critical_beta_volume_plots="assets/su3/plots/critical_beta_volumes_Nt4.pdf",
+        critical_beta_volume_plots="assets/su3/plots/critical_beta_ratios_Nt4.pdf",
         double_gaussian_volume_plots="assets/su3/plots/plaquette_distribution_Nt4_volumes.pdf",
         double_gaussian_plots=expand(
             "assets/su3/plots/plaquette_distribution/pd_{dataset}_1:1.pdf",

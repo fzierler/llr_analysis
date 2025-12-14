@@ -217,7 +217,7 @@ rule critical_beta_volume_plots:
         critical_beta_one_to_two="data_assets/{group}/critical_beta_1:2.csv",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/{group}/plots/critical_beta_volumes_Nt{Nt}.pdf",
+        plot="assets/{group}/plots/critical_beta_ratios_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
     shell:
