@@ -151,9 +151,9 @@ version = "0.7.8"
 
 [[deps.CodecZstd]]
 deps = ["TranscodingStreams", "Zstd_jll"]
-git-tree-sha1 = "d0073f473757f0d39ac9707f1eb03b431573cbd8"
+git-tree-sha1 = "da54a6cd93c54950c15adf1d336cfd7d71f51a56"
 uuid = "6b39b394-51ab-5f42-8807-6242bab2b4c2"
-version = "0.8.6"
+version = "0.8.7"
 
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "ColorVectorSpace", "Colors", "FixedPointNumbers", "PrecompileTools", "Random"]
@@ -574,7 +574,7 @@ uuid = "2e76f6c2-a576-52d4-95c1-20adfe4de566"
 version = "8.5.1+0"
 
 [[deps.HiRepParsing]]
-deps = ["HDF5", "Parsers", "ProgressMeter"]
+deps = ["CodecZstd", "HDF5", "Parsers", "ProgressMeter", "TranscodingStreams"]
 path = "libs/HiRepParsing"
 uuid = "c7cc7de0-aa5c-4db3-979c-e9fc59cba489"
 version = "0.1.0"
@@ -664,7 +664,7 @@ uuid = "88015f11-f218-50d7-93a8-a6af411a945d"
 version = "4.0.1+0"
 
 [[deps.LLRParsing]]
-deps = ["ArgParse", "BenchmarkTools", "CodecZstd", "Dates", "HDF5", "HiRepParsing", "InteractiveUtils", "LaTeXStrings", "LibGit2", "LinearAlgebra", "LsqFit", "MadrasSokal", "NaturalSort", "PCHIPInterpolation", "PDFmerger", "Parsers", "Peaks", "Plots", "ProgressMeter", "Quadmath", "Roots", "Statistics", "StatsBase"]
+deps = ["ArgParse", "BenchmarkTools", "CodecZstd", "Dates", "HDF5", "HiRepParsing", "InteractiveUtils", "LaTeXStrings", "LibGit2", "LinearAlgebra", "LsqFit", "MadrasSokal", "NaturalSort", "PCHIPInterpolation", "PDFmerger", "Parsers", "Peaks", "Plots", "ProgressMeter", "Quadmath", "Roots", "Statistics", "StatsBase", "TranscodingStreams"]
 path = "."
 uuid = "c3118f9c-a4de-4e0f-9f06-ac8db61d0145"
 version = "0.1.0"
