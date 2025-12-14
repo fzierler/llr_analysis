@@ -7,12 +7,11 @@ metadata = pd.read_csv("metadata/runs_su3_zeroT.csv")
 rule all:
     input:
         overview=expand(
-            "tmp/su3_zeroT/plots/overview/{dataset}.pdf",
+            "assets/su3_zeroT/plots/overview/{dataset}.pdf",
             dataset=list_datasets(metadata),
         ),
         trajectory=expand(
-            "tmp/su3_zeroT/plots/an_trajectories/{dataset}.pdf",
+            "assets/su3_zeroT/plots/an_trajectories/{dataset}.pdf",
             dataset=list_datasets(metadata),
         ),
-        volume_comparison_Nt12="assets/su3_zeroT/plots/an_volume_Nt12.pdf",
-        volume_comparison_Nt16="assets/su3_zeroT/plots/an_volume_Nt16.pdf",
+        an_volume=expand("assets/su3_zeroT/plots/an_volume_Nt{Nt}.pdf", Nt=[4, 12, 16]),
