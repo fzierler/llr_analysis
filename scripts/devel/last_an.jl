@@ -2,18 +2,21 @@ using LLRParsing
 using HDF5
 using DelimitedFiles
 
-file = "data_assets/SU3_Nt4_sorted.hdf5"
+theory = "su3"
+file = "data_assets/$(theory)/all_$(theory)_sorted.hdf5"
 h5id = h5open(file)
 runs = keys(h5id)
-r = first(runs)
+runs = filter(!startswith("provenance"), runs)
 
-a0, Δa0, S0, _ = a_vs_central_action(h5id, r)
-Nt = read(h5id[r],"Nt")
-Ns = read(h5id[r],"Ns")
-V  = Nt*Ns*Ns*Ns
-up = S0/(6V)
+for r in runs
+    a0, Δa0, S0, _ = a_vs_central_action(h5id, r)
+    Nt = read(h5id[r], "Nt")
+    Ns = read(h5id[r], "Ns")
+    V = Nt * Ns * Ns * Ns
+    up = S0 / (6V)
 
-io = open("tmp/su3_$r.txt","w")
-write(io,"beta,plaq\n")
-writedlm(io,hcat(a0,up),',')
-close(io)
+    io = open("$(theory)_$r.txt", "w")
+    write(io, "beta,plaq\n")
+    writedlm(io, hcat(a0, up), ',')
+    close(io)
+end
