@@ -4,7 +4,7 @@ include: "rules.smk"
 metadata = pd.read_csv("metadata/runs_su4.csv")
 
 
-rule all:
+rule all_su4:
     input:
         overview_plots=expand(
             "assets/su4/plots/overview/{dataset}.pdf",

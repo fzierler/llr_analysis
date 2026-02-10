@@ -5,7 +5,7 @@ metadata_file = "metadata/runs_su3.csv"
 metadata = pd.read_csv(metadata_file)
 
 
-rule all:
+rule all_su3:
     input:
         metadata_file,
         overview_plots=expand(

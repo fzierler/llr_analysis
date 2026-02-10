@@ -153,7 +153,7 @@ rule an_replica_comparison_plots:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --largets_replicas false --h5file {input.h5file} --plot_file {output.plot} --Nt {wildcards.Nt} --Ns {wildcards.Ns} --title "\$N_t\\times N_s^3={wildcards.Nt}\\times{wildcards.Ns}^3\$"'
+        r'julia --project="." {input.script} --largets_replicas false --h5file {input.h5file} --plot_file {output.plot} --Nt {wildcards.Nt} --Ns {wildcards.Ns} --title "\$N_t\\times N_s^3={wildcards.Nt}\\times{wildcards.Ns}^3\$"'
 
 
 rule entropy_plots:
