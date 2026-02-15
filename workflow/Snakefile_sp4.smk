@@ -46,3 +46,4 @@ rule all_sp4:
         out_critical11="data_assets/sp4/critical_beta_1:1.csv",
         out_critical12="data_assets/sp4/critical_beta_2:1.csv",
         out_critical21="data_assets/sp4/critical_beta_1:2.csv",
+        supercooling_csv="data_assets/sp4/supercooling_param.csv",

@@ -44,5 +44,7 @@ include("free_energy.jl")
 export plot_free_energies
 include("provenance.jl")
 export provenance, print_provenance_tex, print_provenance_csv, write_provenance_hdf5
+include("supercooling.jl")
+export supercooling
 
 end # module LLRParsing

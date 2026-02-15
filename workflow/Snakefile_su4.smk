@@ -42,3 +42,4 @@ rule all_su4:
         #surface_tension_plot="assets/su4/plots/surface_tension_term.pdf",
         #ensembles_combined="assets/su4/tables/runs.tex",
         #file_out="assets/su4/tables/beta_critical.tex",
+        supercooling_csv="data_assets/su4/supercooling_param.csv",

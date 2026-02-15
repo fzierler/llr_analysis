@@ -37,3 +37,4 @@ rule all_su3:
         out_critical="data_assets/su3/critical_beta_1:1.csv",
         out_ratio_21="data_assets/su3/critical_beta_2:1.csv",
         out_ratio_12="data_assets/su3/critical_beta_1:2.csv",
+        supercooling_csv="data_assets/su3/supercooling_param.csv",

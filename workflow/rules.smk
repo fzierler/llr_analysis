@@ -183,6 +183,19 @@ rule critical_cumulant:
         'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv}'
 
 
+rule supercooling:
+    input:
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
+        script="scripts/supercooling.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        csv="data_assets/{group}/supercooling_param.csv",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --h5file {input.h5file} --outfile {output.csv}'
+
+
 rule critical_beta_ratio:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
