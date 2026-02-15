@@ -171,11 +171,21 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
     N_replicas = only(unique([length(replica_dirs[r]) for r in repeats]))
     Nt = only(unique(first.(latticesize.(files))))
     Ns = only(unique(last.(latticesize.(files))))
+    gauge_group = only(unique(gaugegroup.(files)))
+
+    # split gauge group into group family and Nc
+    rx = r"(?<G>[a-zA-Z]+)\((?<Nc>[0-9]+)\)"
+    m = match(rx, gauge_group)
+    gauge_family = m["G"]
+    Nc = m["Nc"]
 
     name = "$(Nt)x$(Ns)_$(N_replicas)replicas" * suffix
     write(fid, joinpath(name, "N_repeats"), N_repeats)
     write(fid, joinpath(name, "N_replicas"), N_replicas)
     write(fid, joinpath(name, "repeats"), repeats)
+    write(fid, joinpath(name, "group"), gauge_group)
+    write(fid, joinpath(name, "family"), gauge_family)
+    write(fid, joinpath(name, "Nc"), Nc)
     write(fid, joinpath(name, "Nt"), Nt)
     write(fid, joinpath(name, "Ns"), Ns)
 
@@ -271,6 +281,9 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
     write(h5dset_out, joinpath(run, "repeats"), repeats)
     write(h5dset_out, joinpath(run, "Nt"), h5read(h5file_in, joinpath(run, "Nt")))
     write(h5dset_out, joinpath(run, "Ns"), h5read(h5file_in, joinpath(run, "Ns")))
+    write(h5dset_out, joinpath(run, "group"), h5read(h5file_in, joinpath(run, "group")))
+    write(h5dset_out, joinpath(run, "family"), h5read(h5file_in, joinpath(run, "family")))
+    write(h5dset_out, joinpath(run, "Nc"), h5read(h5file_in, joinpath(run, "Nc")))
 
     close(h5dset)
     return close(h5dset_out)

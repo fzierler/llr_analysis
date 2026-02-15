@@ -29,12 +29,14 @@ function all_critical_beta(file, outfile, Nt; A1 = 1, A2 = 1)
         L = read(fid[run], "Ns")
         T = read(fid[run], "Nt")
         Nr = read(fid[run], "N_replicas")
+        GG = read(fid[run], "family")
+        Nc = read(fid[run], "Nc")
         try
             βc, Δβc = LLRParsing.βc_jackknife(fid, run; A1, A2)
-            println(io, "Sp,4,$Nr,$run,$T,$L,$A1,$A2,$βc,$Δβc")
+            println(io, "$GG,$Nc,$Nr,$run,$T,$L,$A1,$A2,$βc,$Δβc")
         catch
             @warn "Cannot determine critical coupling for run $run with peak ratio $A1:$A2"
-            println(io, "Sp,4,$Nr,$run,$T,$L,$A1,$A2,NaN,NaN")
+            println(io, "$GG,$Nc,$Nr,$run,$T,$L,$A1,$A2,NaN,NaN")
         end
     end
     return close(io)

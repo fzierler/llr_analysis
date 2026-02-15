@@ -151,12 +151,14 @@ function critical_cumulants_all_runs(h5file, outfile, Nt)
         L = read(h5dset[r], "Ns")
         T = read(h5dset[r], "Nt")
         Nr = read(h5dset[r], "N_replicas")
+        GG = read(h5dset[r], "family")
+        Nc = read(h5dset[r], "Nc")
 
         kws = (N = 50, eps = 1.0e-6)
         βc_CV, Δβc_CV = critical_beta_specific_heat(h5dset, r; kws...)
         βc_BC, Δβc_BC = critical_beta_binder_cumulant(h5dset, r; kws...)
 
-        println(io, "Sp,4,$Nr,$r,$T,$L,$βc_CV,$Δβc_CV,$βc_BC,$Δβc_BC")
+        println(io, "$GG,$Nc,$Nr,$r,$T,$L,$βc_CV,$Δβc_CV,$βc_BC,$Δβc_BC")
     end
     close(io)
     return nothing

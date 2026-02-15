@@ -18,6 +18,8 @@ function supercooling_all_runs(h5file, outfile, Nt)
         L = read(h5dset[r], "Ns")
         T = read(h5dset[r], "Nt")
         Nr = read(h5dset[r], "N_replicas")
+        GG = read(h5dset[r], "family")
+        Nc = read(h5dset[r], "Nc")
 
         t1, Δt1, t2, Δt2, tc, Δtc = try
             supercooling(h5dset, r)
@@ -25,7 +27,7 @@ function supercooling_all_runs(h5file, outfile, Nt)
             NaN, NaN, NaN, NaN, NaN, NaN
         end
 
-        println(io, "Sp,4,$Nr,$r,$T,$L,$t1,$Δt1,$t2,$Δt2,$tc,$Δtc")
+        println(io, "$GG,$Nc,$Nr,$r,$T,$L,$t1,$Δt1,$t2,$Δt2,$tc,$Δtc")
     end
     close(io)
     return nothing
