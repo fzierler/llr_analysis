@@ -7,10 +7,10 @@ using Peaks
 gr(
     size = (350, 300),
     fontfamily = "Computer Modern",
-    legend = :topleft,
+    legend = :top,
     frame = :box,
     titlefontsize = 10,
-    legendfontsize = 9,
+    legendfontsize = 8,
     tickfontsize = 9,
     labelfontsize = 10,
     left_margin = 0Plots.mm,
@@ -71,7 +71,7 @@ function an_action_volumes(file, plotdest; title)
     runs = largets_replica_runs(h5id, runs)
     plt = a_vs_central_action_plot(h5id, runs, lens = false)
     title = latexstring(title)
-    plot!(plt; legend = :bottomright, xlabel = L"u_p", ylabel = L"a_n", title)
+    plot!(plt; xlabel = L"u_p", ylabel = L"a_n", title)
     return savefig(plt, plotdest)
 end
 function parse_commandline()
