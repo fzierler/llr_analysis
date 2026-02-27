@@ -94,6 +94,11 @@ function parse_llr(file)
     tmp_poly = zeros(2)
     is_fxa = false
 
+    pattern_meas = r"\[(ROBBINSMONRO|NEWTONRAPHSON)\]\[10\]Measurement \(E-S0\)"
+    pattern_therm = r"\[(ROBBINSMONRO|NEWTONRAPHSON)\]\[10\]Thermalisation \(E-S0\)"
+    E_meas = Vector{Float64}[]
+    E_therm = Vector{Float64}[]
+
     # keep track of line number so that we can skip them if specified by skiplines
     io = HiRepParsing.makestream(file)
     for line in eachline(io)
@@ -147,13 +152,25 @@ function parse_llr(file)
             _parse_data!(tmp_poly, line[pos_poly:end]; n = 2)
             append!(poly, tmp_poly[1] + im * tmp_poly[2])
         end
+        if startswith(line, pattern_meas)
+            E_meas_tmp = zeros(last(llr_meas))
+            pos_meas = findfirst(':', line)
+            _parse_data!(E_meas_tmp, line[(pos_meas + 1):end]; n = last(llr_meas))
+            push!(E_meas, copy(E_meas_tmp))
+        end
+        if startswith(line, pattern_therm)
+            E_therm_tmp = zeros(last(llr_therm))
+            pos_meas = findfirst(':', line)
+            _parse_data!(E_therm_tmp, line[(pos_meas + 1):end]; n = last(llr_therm))
+            push!(E_therm, E_therm_tmp)
+        end
     end
     close(io)
-    # assert that we always have used a consistent number of
+    # assert that we always have used a consistent number of thermalisation and measurements
     llr_therm = only(unique(llr_therm))
     llr_meas = only(unique(llr_meas))
     # end function and returned parsed information
-    return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas
+    return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas, E_therm, E_meas
 end
 function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filename = "out_0")
     fid = h5open(h5file, "cw")
@@ -193,7 +210,7 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
         for rep in replica_dirs[repeat]
             file = joinpath(dir, repeat, rep, filename)
             a0 = parse_initial_a(file)
-            dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, llr_therm, llr_meas = parse_llr(file)
+            dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, llr_therm, llr_meas, E_therm, E_meas = parse_llr(file)
             write(fid, joinpath(name, repeat, rep, "dS0"), dS0)
             write(fid, joinpath(name, repeat, rep, "S0"), S0)
             write(fid, joinpath(name, repeat, rep, "a0"), a0)
@@ -205,6 +222,12 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
             write(fid, joinpath(name, repeat, rep, "poly"), poly)
             write(fid, joinpath(name, repeat, rep, "llr_therm"), llr_therm)
             write(fid, joinpath(name, repeat, rep, "llr_meas"), llr_meas)
+            if length(E_meas) > 0 && length(E_therm) > 0
+                E_therm = reduce(hcat, E_therm)
+                E_meas = reduce(hcat, E_meas)
+                write(fid, joinpath(name, repeat, rep, "E_therm"), E_therm)
+                write(fid, joinpath(name, repeat, rep, "E_meas"), E_meas)
+            end
         end
     end
     return close(fid)
@@ -233,6 +256,7 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
         p = read_non_matching_trajectory(h5dset[run][j], Float64; key = "plaq")
         is_rm = read_non_matching_trajectory(h5dset[run][j], Bool; key = "is_rm")
         S = read_non_matching_trajectory(h5dset[run][j], Float64; key = "S0")
+
         # Check if we have any mismatches of the unsorted central energies
         data_healthy = all(allequal, eachslice(sort(S, dims = 1), dims = 1))
         if !data_healthy
