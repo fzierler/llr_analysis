@@ -90,6 +90,7 @@ function parse_llr(file)
 
     llr_therm = Int[]
     llr_meas = Int[]
+    llr_log_freq = Int[]
 
     tmp_poly = zeros(2)
     is_fxa = false
@@ -124,18 +125,21 @@ function parse_llr(file)
                 str = m.captures
                 append!(a, parse(Float64, str[2]))
             end
-            # Parse LLR thermalisation and measurement steps
-            pattern_mcA = "[MAIN][0]LLR number of mc steps per RM: "
-            pattern_mcB = "[MAIN][0]LLR nunber of mc steps per RM: "
-            if startswith(line, pattern_mcA) || startswith(line, pattern_mcB)
-                len = length(pattern_mcA)
+            # Parse LLR thermalisation and measurement steps as well as logging frequency
+            pattern_mc = r"\[MAIN\]\[0\]LLR nu(n|m)ber of mc steps per RM: "
+            if startswith(line, pattern_mc)
+                len = length("[MAIN][0]LLR number of mc steps per RM: ")
                 append!(llr_meas, parse(Int, line[len:end]))
             end
-            pattern_thermA = "[MAIN][0]LLR number of therm steps per RM "
-            pattern_thermB = "[MAIN][0]LLR nunber of therm steps per RM "
-            if startswith(line, pattern_thermA) || startswith(line, pattern_thermB)
-                len = length(pattern_thermA)
+            pattern_therm_steps = r"\[MAIN\]\[0\]LLR nu(n|m)ber of therm steps per RM "
+            if startswith(line, pattern_therm_steps)
+                len = length("[MAIN][0]LLR number of therm steps per RM ")
                 append!(llr_therm, parse(Int, line[len:end]))
+            end
+            pattern_log_freq = "[MAIN][0]LLR logging frequency for double bracket measurement "
+            if startswith(line, pattern_log_freq)
+                len = length(pattern_log_freq)
+                append!(llr_log_freq, parse(Int, line[len:end]))
             end
         end
         if !is_fxa && startswith(line, patternS0)
@@ -152,17 +156,20 @@ function parse_llr(file)
             _parse_data!(tmp_poly, line[pos_poly:end]; n = 2)
             append!(poly, tmp_poly[1] + im * tmp_poly[2])
         end
-        if startswith(line, pattern_meas)
-            E_meas_tmp = zeros(last(llr_meas))
-            pos_meas = findfirst(':', line)
-            _parse_data!(E_meas_tmp, line[(pos_meas + 1):end]; n = last(llr_meas))
-            push!(E_meas, copy(E_meas_tmp))
-        end
-        if startswith(line, pattern_therm)
-            E_therm_tmp = zeros(last(llr_therm))
-            pos_meas = findfirst(':', line)
-            _parse_data!(E_therm_tmp, line[(pos_meas + 1):end]; n = last(llr_therm))
-            push!(E_therm, E_therm_tmp)
+        # Only parse the values of the thermalisation and measurement if we find the corresponding logging frequency in the logs
+        if !isempty(llr_log_freq) && last(llr_log_freq) > 0
+            if startswith(line, pattern_meas)
+                E_meas_tmp = zeros(last(llr_meas) ÷ last(llr_log_freq))
+                pos_meas = findfirst(':', line)
+                _parse_data!(E_meas_tmp, line[(pos_meas + 1):end]; n = last(llr_meas))
+                push!(E_meas, copy(E_meas_tmp))
+            end
+            if startswith(line, pattern_therm)
+                E_therm_tmp = zeros(last(llr_therm) ÷ last(llr_log_freq))
+                pos_meas = findfirst(':', line)
+                _parse_data!(E_therm_tmp, line[(pos_meas + 1):end]; n = last(llr_therm))
+                push!(E_therm, E_therm_tmp)
+            end
         end
     end
     close(io)
