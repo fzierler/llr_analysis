@@ -56,14 +56,16 @@ function main()
 
     repeat = 1
     replica = 50
-    plt1 = plot(E_meas[:, replica, repeat], label = "", title = "replica #$replica")
+
+    plts = [ plot(E_meas[:, replica, repeat], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
+    plt1 = plot(plts..., layout = grid(12, 8), size = (1000, 1500))
     plts = [ histogram(E_meas[:, i, repeat + 1], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
     plt2 = plot(plts..., layout = grid(12, 8), size = (1000, 1500))
     plot!(plt2, plot_title = LLRParsing.fancy_title(name))
 
     display(plt1)
-    return display(plt2)
-    #savefig("histograms.pdf")
+    display(plt2)
+    return nothing
 end
 
 main()
