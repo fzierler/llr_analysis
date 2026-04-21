@@ -3,6 +3,7 @@ Pkg.activate(".")
 using LLRParsing
 using HDF5
 using Plots
+using MadrasSokal
 gr(
     fontfamily = "Computer Modern",
     legend = :topleft,
@@ -59,8 +60,13 @@ function main()
     plt2 = plot(plts..., layout = grid(12, 8), size = (1000, 1500))
     plot!(plt2, plot_title = LLRParsing.fancy_title(name))
 
-    display(plt1)
-    display(plt2)
+    E_full = cat(E_therm, E_meas, dims = 1)
+    x = 1:size(E_full, 1)
+    plt = MadrasSokal.autocorrelation_overview(x, E_full[:, replica, repeat + 1], "", 1)
+
+    savefig(plt, "MadrasSokal.pdf")
+    savefig(plt1, "Trajectory.pdf")
+    savefig(plt2, "Histogram.pdf")
     return nothing
 end
 
