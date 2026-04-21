@@ -34,6 +34,13 @@ function read_therm_meas(h5id, name)
         end
     end
 
+    # sort by central energy
+    for r in axes(E_therm, 3)
+        perm = sortperm(E0[:, r])
+        E_therm[:, :, r] = E_therm[:, perm, r]
+        E_meas[:, :, r] = E_meas[:, perm, r]
+    end
+
     return E_therm, E_meas, ΔE, E0
 end
 
@@ -42,18 +49,7 @@ function main()
     h5id = h5open("tmp/su4/su4.hdf5")
     name = "5x32_96replicas"
 
-    N_repeats = read(h5id, "$name/N_repeats")
-    N_replicas = read(h5id, "$name/N_replicas")
-    Nt = read(h5id, "$name/Nt")
-    Ns = read(h5id, "$name/Ns")
-
     E_therm, E_meas, ΔE, E0 = read_therm_meas(h5id, name)
-    for r in axes(E_therm, 3)
-        perm = sortperm(E0[:, r])
-        E_therm[:, :, r] = E_therm[:, perm, r]
-        E_meas[:, :, r] = E_meas[:, perm, r]
-    end
-
     repeat = 1
     replica = 50
 
