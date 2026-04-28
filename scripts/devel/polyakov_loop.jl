@@ -29,8 +29,20 @@ S0_fxa = zeros(Nrep, nfxa_swap)
 an_fxa = zeros(Nrep, nfxa_swap)
 poly_fxa = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
 
+S0_fxa_sorted = zeros(Nrep, nfxa_swap)
+an_fxa_sorted = zeros(Nrep, nfxa_swap)
+poly_fxa_sorted = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
+
 for i in 1:Nrep
     S0_fxa[i, :] = read(h5["$ens/0/Rep_$(i - 1)"], "S0_fxa")
     an_fxa[i, :] = read(h5["$ens/0/Rep_$(i - 1)"], "a_fxa")
     poly_fxa[i, :, :] = read(h5["$ens/0/Rep_$(i - 1)"], "poly")
+end
+
+# To do: sort polyakov loop data
+perm = [ sortperm(S0_fxa[:,i]) for i in axes(S0_fxa,2) ]
+for (i,p) in enumerate(perm)
+    S0_fxa_sorted[:,i] .= S0_fxa[p,i] 
+    an_fxa_sorted[:,i] .= an_fxa[p,i] 
+    poly_fxa_sorted[:,:,i] .= poly_fxa[p,:,i] 
 end
