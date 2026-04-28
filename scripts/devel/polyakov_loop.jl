@@ -3,6 +3,19 @@ Pkg.activate(".")
 Pkg.instantiate()
 using LLRParsing
 using HDF5
+using Plots
+using LaTeXStrings
+gr(
+    size = (425, 282),
+    fontfamily = "Computer Modern",
+    legend = :topright,
+    frame = :box,
+    titlefontsize = 10,
+    legendfontsize = 7,
+    tickfontsize = 7,
+    labelfontsize = 10,
+    left_margin = 0Plots.mm,
+)
 
 # S0 is the same as Ek in David's code
 # an is the same as -a in David's code
@@ -14,16 +27,20 @@ function logZ_fxa(S_fxa, S0, an, β)
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
 
-h5file = "tmp/su3/su3.hdf5"
+h5file = "tmp/sp4/sp4.hdf5"
 h5 = h5open(h5file)
-ens = "4x20_8replicas"
+ens = "4x20_64replicas"
+rep = "0"
+
 Nrep = read(h5[ens], "N_replicas")
+Nt = read(h5[ens],"Nt")
+Ns = read(h5[ens],"Ns")
+V = Nt*Ns^3
 
 # The following quantities are not reliably logged in the output files
-# llr:sfreq_fxa = 20
-# llr:nfxa = 2000
-nfxa_meas = 20
-nfxa_swap = 2000
+# But we can deduce them from the total number of measurements
+nfxa_meas = 100
+nfxa_swap = 100
 
 S0_fxa = zeros(Nrep, nfxa_swap)
 an_fxa = zeros(Nrep, nfxa_swap)
@@ -34,9 +51,9 @@ an_fxa_sorted = zeros(Nrep, nfxa_swap)
 poly_fxa_sorted = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
 
 for i in 1:Nrep
-    S0_fxa[i, :] = read(h5["$ens/0/Rep_$(i - 1)"], "S0_fxa")
-    an_fxa[i, :] = read(h5["$ens/0/Rep_$(i - 1)"], "a_fxa")
-    poly_fxa[i, :, :] = read(h5["$ens/0/Rep_$(i - 1)"], "poly")
+    S0_fxa[i, :] = read(h5["$ens/$rep/Rep_$(i - 1)"], "S0_fxa")
+    an_fxa[i, :] = read(h5["$ens/$rep/Rep_$(i - 1)"], "a_fxa")
+    poly_fxa[i, :, :] = read(h5["$ens/$rep/Rep_$(i - 1)"], "poly")
 end
 
 # To do: sort polyakov loop data
@@ -46,3 +63,12 @@ for (i,p) in enumerate(perm)
     an_fxa_sorted[:,i] .= an_fxa[p,i] 
     poly_fxa_sorted[:,:,i] .= poly_fxa[p,:,i] 
 end
+
+up = S0_fxa_sorted[:,1]/(6V)
+poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
+
+title = LLRParsing.fancy_title(ens)* ", repeat #$rep"
+
+plt = scatter(up,real.(poly[:,1:20:end]),label="",color=:black,alpha=0.2,ms=2)
+plot!(plt,xlabel=L"\ell_p",ylabel=L"u_p",title=title)
+savefig("bifurcation.pdf")
