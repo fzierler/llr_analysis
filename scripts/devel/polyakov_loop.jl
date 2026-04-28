@@ -67,8 +67,13 @@ end
 up = S0_fxa_sorted[:,1]/(6V)
 poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
 
-title = LLRParsing.fancy_title(ens)* ", repeat #$rep"
+title = LLRParsing.fancy_title(ens)*", repeat #$rep"
 
 plt = scatter(up,real.(poly[:,1:20:end]),label="",color=:black,alpha=0.2,ms=2)
 plot!(plt,xlabel=L"\ell_p",ylabel=L"u_p",title=title)
 savefig("bifurcation.pdf")
+
+plts = [histogram(real.(poly[i,1:20:end]),bins=:sqrt,normalize=:probability,xlabel=L"\ell_p",label="replica #$i",title=title) for i in 1:Nrep]
+for p in plts
+    display(p)
+end
