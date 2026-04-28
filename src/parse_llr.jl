@@ -108,7 +108,7 @@ function parse_llr(file)
         end
         if startswith(line, "[MAIN][0]")
             if startswith(line, "[MAIN][0]Robins Monro update done.")
-                if !isempty(S0) && !isempty(S0)
+                if !isempty(S0) && !isempty(a)
                     is_fxa = true
                     append!(S0_fxa, S0[end])
                     append!(a_fxa, a[end])
