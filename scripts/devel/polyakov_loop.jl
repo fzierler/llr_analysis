@@ -69,11 +69,16 @@ poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
 
 title = LLRParsing.fancy_title(ens)*", repeat #$rep"
 
-plt = scatter(up,real.(poly[:,1:20:end]),label="",color=:black,alpha=0.2,ms=2)
-plot!(plt,xlabel=L"\ell_p",ylabel=L"u_p",title=title)
+# frequency of plotting  (for smaller files)
+f = 20
+plt = scatter(up,real.(poly[:,1:f:end]),label="",color=:black,alpha=0.2,ms=2)
+plot!(plt,ylabel=L"\ell_p",xlabel=L"u_p",title=title)
 savefig("bifurcation.pdf")
 
-plts = [histogram(real.(poly[i,1:20:end]),bins=:sqrt,normalize=:probability,xlabel=L"\ell_p",label="replica #$i",title=title) for i in 1:Nrep]
-for p in plts
-    display(p)
+kws = (bins=:sqrt,normalize=:probability,xlabel=L"\ell_p",title=title)
+plts = [histogram(real.(poly[i,1:f:end]),label="replica #$i"; kws...) for i in 1:Nrep]
+for (i,p) in enumerate(plts)
+    b0 = LLRParsing._highlight_replica!(deepcopy(plt),up,i; color = :green, alpha = 0.5, labels = "replica")
+    p0 = plot(p, b0, layout = grid(2, 1), size = (425, 564))
+    display(p0)
 end

@@ -68,6 +68,13 @@ function a_vs_central_action_plot!(plt, h5dset, run; index = nothing, kws...)
     Nrep = read(h5dset[run], "N_replicas")
     return a_vs_central_action_plot!(plt, a0, Δa0, S0, Nt, Ns, Nrep; kws...)
 end
+function _highlight_replica!(plt,up,highlight_index; kws...)
+    N = length(up)
+    highlight_index = clamp(highlight_index, 1, N - 1)
+    mid = up[highlight_index]
+    del = (up[highlight_index + 1] - up[highlight_index]) / 2
+    vspan!(plt, [mid - del, mid + del]; kws...)
+end
 function a_vs_central_action_plot!(
         plt,
         a0,
@@ -84,11 +91,7 @@ function a_vs_central_action_plot!(
     up = S0 / (6V)
     plot!(plt, up, a0, yerr = Δa0, marker = :auto; label)
     if !isnothing(highlight_index)
-        N = length(up)
-        highlight_index = clamp(highlight_index, 1, N - 1)
-        mid = up[highlight_index]
-        del = (up[highlight_index + 1] - up[highlight_index]) / 2
-        vspan!(plt, [mid - del, mid + del], color = :green, alpha = 0.7, labels = "replica")
+        _highlight_replica!(plt,up,highlight_index; color = :green, alpha = 0.7, labels = "replica")
     end
     if lens
         ylms, xlms, yticks, xticks = _lens_location(a0, Δa0, up)
@@ -112,13 +115,10 @@ function a_variance_vs_central_action_plot!(
     V = Ns^3 * Nt
     up = S0 / (6V)
     plot!(plt, up, zero(a0), ribbon = (zero(Δa0), Δa0), label = L"\Delta a_n")
-    return if !isnothing(highlight_index)
-        N = length(up)
-        highlight_index = clamp(highlight_index, 1, N - 1)
-        mid = up[highlight_index]
-        del = (up[highlight_index + 1] - up[highlight_index]) / 2
-        vspan!(plt, [mid - del, mid + del], color = :green, alpha = 0.8, labels = "replica")
+    if !isnothing(highlight_index)
+        _highlight_replica!(plt,up,highlight_index; color = :green, alpha = 0.8, labels = "replica")
     end
+    return plt
 end
 function a_trajectory(h5dset, run; replica = 0)
     N_replicas = read(h5dset[run], "N_replicas")
