@@ -5,6 +5,7 @@ using LLRParsing
 using HDF5
 using Plots
 using LaTeXStrings
+using PDFmerger
 gr(
     size = (425, 282),
     fontfamily = "Computer Modern",
@@ -32,6 +33,7 @@ h5 = h5open(h5file)
 ens = "4x20_64replicas"
 rep = "0"
 
+repeats = read(h5[ens], "repeats")
 Nrep = read(h5[ens], "N_replicas")
 Nt = read(h5[ens],"Nt")
 Ns = read(h5[ens],"Ns")
@@ -39,8 +41,8 @@ V = Nt*Ns^3
 
 # The following quantities are not reliably logged in the output files
 # But we can deduce them from the total number of measurements
-nfxa_meas = 100
-nfxa_swap = 100
+nfxa_swap = length(h5["$ens/$(first(repeats))/Rep_0/S0_fxa"])
+nfxa_meas = length(h5["$ens/$(first(repeats))/Rep_0/poly"])÷nfxa_swap
 
 S0_fxa = zeros(Nrep, nfxa_swap)
 an_fxa = zeros(Nrep, nfxa_swap)
