@@ -69,15 +69,16 @@ function plot_poly_overview(an,up,poly,plotpath,plotname,repeat,ens;f1,f2)
 
     kws = (bins=:sqrt,normalize=:probability,xlabel=L"\ell_p",title=title)
     plts = [histogram(poly[i,1:f1:end],label="replica #$i"; kws...) for i in 1:Nrep]
+
+    tmpfiles = [ tempname()*"_$i.pdf" for i in eachindex(plts) ]
     @showprogress desc=ens for (i,p) in enumerate(plts)
         b0 = LLRParsing._highlight_replica!(deepcopy(plt),up,i; color = :green, alpha = 0.5, labels = "replica")
         a0 = LLRParsing._highlight_replica!(deepcopy(plt_an),up,i; color = :green, alpha = 0.5, labels = "replica")
         p0 = plot(p, b0, a0, layout = grid(3, 1), size = (425, 846))
-        # combine these plots into a single file
-        tmpfile = tempname()*".pdf"
-        savefig(p0,tmpfile)
-        append_pdf!(joinpath(plotpath,plotname),tmpfile,cleanup=true)
+        savefig(p0,tmpfiles[i])
     end
+    # combine these plots into a single file
+    merge_pdfs(tmpfiles,joinpath(plotpath,plotname),cleanup=true)
 end
 
 h5file = "tmp/su3/su3.hdf5"
@@ -90,8 +91,9 @@ for ens in keys(h5)
     Ns = read(h5[ens],"Ns")
 
     # skip for now if plot exists 
-    plotpath = "."
+    plotpath = "plots_hist_new"
     plotname = "polyakov_loop_su3_$(ens)_scatter.pdf"
+    ispath(plotpath) || mkpath(plotpath)
 
     # obtain fixed-a parameters
     nfxa_swap = length(h5["$ens/$(first(repeats))/Rep_0/S0_fxa"])
