@@ -106,14 +106,14 @@ function parse_llr(file)
         if startswith(line, "[SYSTEM][0]Process finalized.")
             is_fxa = false
         end
-        if startswith(line, "[MAIN][0]")
-            if startswith(line, "[MAIN][0]Robins Monro update done.")
-                if !isempty(S0) && !isempty(a)
-                    is_fxa = true
-                    append!(S0_fxa, S0[end])
-                    append!(a_fxa, a[end])
-                end
+        if !is_fxa && startswith(line,"[ROBBINSMONRO][10]Fixed a MC Step")
+            if !isempty(S0) && !isempty(a) && isempty(S0_fxa) && isempty(a_fxa)
+                is_fxa = true
+                append!(S0_fxa, S0[end])
+                append!(a_fxa, a[end])
             end
+        end
+        if startswith(line, "[MAIN][0]")
             if occursin(patternPl, line)
                 m = match(patternPl, line)
                 str = m.captures
