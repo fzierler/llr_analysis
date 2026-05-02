@@ -28,10 +28,14 @@ function logZ_fxa(S_fxa, S0, an, β)
     # figure out sorting of S0_fxa
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
-function read_sort_poly_data(h5,ens,repeat,nfxa_swap,nfxa_meas)
+function sort_poly_data(h5,ens,repeat)
     # The following quantities are not reliably logged in the output files
     # But we can deduce them from the total number of measurements
     Nrep = read(h5[ens], "N_replicas")
+    nfxa_swap = length(h5["$ens/$repeat/Rep_0/S0_fxa"])
+    npoly_meas = length(h5["$ens/$repeat/Rep_0/poly"])
+    nfxa_meas = npoly_meas÷nfxa_swap
+    
     S0_fxa = zeros(Nrep, nfxa_swap)
     an_fxa = zeros(Nrep, nfxa_swap)
     poly_fxa = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
@@ -84,7 +88,12 @@ end
 h5file = "tmp/su3/su3.hdf5"
 h5file = "tmp/sp4/sp4.hdf5"
 h5 = h5open(h5file)
-for ens in keys(h5)
+for ens in filter(!isequal("provenance"),keys(h5))
+    @show ens
+    ens == "4x12_64replicas" && continue
+    ens == "4x12_96replicas" && continue
+    ens == "4x16_64replicas" && continue
+    ens == "4x16_96replicas" && continue
     repeats = read(h5[ens], "repeats")
     Nrep = read(h5[ens], "N_replicas")
     Nt = read(h5[ens],"Nt")
@@ -102,7 +111,7 @@ for ens in keys(h5)
     iszero(nfxa_swap) && continue
     nfxa_meas = npoly_meas÷nfxa_swap
 
-    an, S0, poly = read_sort_poly_data(h5,ens,first(repeats),nfxa_swap,nfxa_meas)
+    an, S0, poly = sort_poly_data(h5,ens,first(repeats))
     up = S0/(6Nt*Ns^3)
 
     # for Z2 symmetric theories the polyakov loop is real
@@ -110,7 +119,7 @@ for ens in keys(h5)
     poly = real.(poly)
 
     # frequency of plotting  (for smaller files)
-    f1 = 20
-    f2 = nfxa_meas÷100
+    f1 = 50
+    f2 = 500
     plot_poly_overview(an,up,poly,plotpath,plotname,first(repeats),ens;f1,f2)
 end
