@@ -306,6 +306,11 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
             write(dset, "dS0", dS0)
             write(dset, "a0", a0)
         end
+        # sort the results of fixed_a calculations
+        an_fxa, S0_fxa, poly_fxa = sort_poly_data(h5dset,run,j)
+        write(h5dset_out["$run/$j"],"an_fxa",an_fxa)
+        write(h5dset_out["$run/$j"],"S0_fxa",S0_fxa)
+        write(h5dset_out["$run/$j"],"poly_fxa",poly_fxa)
     end
     write(h5dset_out, joinpath(run, "N_replicas"), N_replicas)
     write(h5dset_out, joinpath(run, "N_repeats"), N_repeats)
@@ -318,4 +323,47 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
 
     close(h5dset)
     return close(h5dset_out)
+end
+function sort_poly_data(h5,ens,repeat)
+    # The following quantities are not reliably logged in the output files
+    # But we can deduce them from the total number of measurements
+    Nrep = read(h5[ens], "N_replicas")
+    nfxa_swap = length(h5["$ens/$repeat/Rep_0/S0_fxa"])
+    npoly_meas = length(h5["$ens/$repeat/Rep_0/poly"])
+    
+    # if we don't have any measurements, then we return empty arrays
+    if iszero(nfxa_swap) || iszero(npoly_meas)
+        return Float64[], Float64[], Float64[]
+    end
+    # reconstruct number of measurements between swaps from the total number of 
+    # measurements of the polyakov loop
+    nfxa_meas = npoly_meas÷nfxa_swap
+
+    S0_fxa = zeros(Nrep, nfxa_swap)
+    an_fxa = zeros(Nrep, nfxa_swap)
+    poly_fxa = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
+
+    S0_fxa_sorted = zeros(Nrep, nfxa_swap)
+    an_fxa_sorted = zeros(Nrep, nfxa_swap)
+    poly_fxa_sorted = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
+
+    for i in 1:Nrep
+        S0_fxa[i, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "S0_fxa")
+        an_fxa[i, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "a_fxa")
+        poly_fxa[i, :, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "poly")
+    end
+
+    perm = [ sortperm(S0_fxa[:,i]) for i in axes(S0_fxa,2) ]
+    for (i,p) in enumerate(perm)
+        S0_fxa_sorted[:,i] .= S0_fxa[p,i] 
+        an_fxa_sorted[:,i] .= an_fxa[p,i] 
+        poly_fxa_sorted[:,:,i] .= poly_fxa[p,:,i] 
+    end
+
+    # the central energies and coefficients an do not change
+    # we can just grab one set of values
+    S0 = S0_fxa_sorted[:,1]
+    an = an_fxa_sorted[:,1]
+    poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
+    return an, S0, poly
 end

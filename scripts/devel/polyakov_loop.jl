@@ -28,40 +28,6 @@ function logZ_fxa(S_fxa, S0, an, β)
     # figure out sorting of S0_fxa
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
-function sort_poly_data(h5,ens,repeat)
-    # The following quantities are not reliably logged in the output files
-    # But we can deduce them from the total number of measurements
-    Nrep = read(h5[ens], "N_replicas")
-    nfxa_swap = length(h5["$ens/$repeat/Rep_0/S0_fxa"])
-    npoly_meas = length(h5["$ens/$repeat/Rep_0/poly"])
-    nfxa_meas = npoly_meas÷nfxa_swap
-    
-    S0_fxa = zeros(Nrep, nfxa_swap)
-    an_fxa = zeros(Nrep, nfxa_swap)
-    poly_fxa = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
-
-    S0_fxa_sorted = zeros(Nrep, nfxa_swap)
-    an_fxa_sorted = zeros(Nrep, nfxa_swap)
-    poly_fxa_sorted = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
-
-    for i in 1:Nrep
-        S0_fxa[i, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "S0_fxa")
-        an_fxa[i, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "a_fxa")
-        poly_fxa[i, :, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "poly")
-    end
-
-    perm = [ sortperm(S0_fxa[:,i]) for i in axes(S0_fxa,2) ]
-    for (i,p) in enumerate(perm)
-        S0_fxa_sorted[:,i] .= S0_fxa[p,i] 
-        an_fxa_sorted[:,i] .= an_fxa[p,i] 
-        poly_fxa_sorted[:,:,i] .= poly_fxa[p,:,i] 
-    end
-
-    S0 = S0_fxa_sorted[:,1]
-    an = an_fxa_sorted[:,1]
-    poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
-    return an, S0, poly
-end
 function plot_poly_overview(an,up,poly,plotpath,plotname,repeat,ens;f1,f2)
     Nrep = length(an)
 
@@ -85,33 +51,17 @@ function plot_poly_overview(an,up,poly,plotpath,plotname,repeat,ens;f1,f2)
     merge_pdfs(tmpfiles,joinpath(plotpath,plotname),cleanup=true)
 end
 
-h5file = "tmp/su3/su3.hdf5"
-h5file = "tmp/sp4/sp4.hdf5"
+h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 h5 = h5open(h5file)
-for ens in filter(!isequal("provenance"),keys(h5))
-    @show ens
-    ens == "4x12_64replicas" && continue
-    ens == "4x12_96replicas" && continue
-    ens == "4x16_64replicas" && continue
-    ens == "4x16_96replicas" && continue
-    repeats = read(h5[ens], "repeats")
-    Nrep = read(h5[ens], "N_replicas")
+for ens in filter(!isequal("provenance"),keys(h5))    
+    # lattice volume
     Nt = read(h5[ens],"Nt")
     Ns = read(h5[ens],"Ns")
-
-    # skip for now if plot exists 
-    plotpath = "plots_hist_new"
-    plotname = "polyakov_loop_su3_$(ens)_scatter.pdf"
-    ispath(plotpath) || mkpath(plotpath)
-
+    repeats = read(h5[ens],"repeats")
     # obtain fixed-a parameters
-    nfxa_swap = length(h5["$ens/$(first(repeats))/Rep_0/S0_fxa"])
-    npoly_meas = length(h5["$ens/$(first(repeats))/Rep_0/poly"])
-    # if we haven't performed any such measurement we skip the ensemble
-    iszero(nfxa_swap) && continue
-    nfxa_meas = npoly_meas÷nfxa_swap
-
-    an, S0, poly = sort_poly_data(h5,ens,first(repeats))
+    an = read(h5["$ens/$(first(repeats))"],"an_fxa")
+    S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
+    poly = read(h5["$ens/$(first(repeats))"],"poly_fxa")
     up = S0/(6Nt*Ns^3)
 
     # for Z2 symmetric theories the polyakov loop is real
@@ -121,5 +71,8 @@ for ens in filter(!isequal("provenance"),keys(h5))
     # frequency of plotting  (for smaller files)
     f1 = 50
     f2 = 500
+    plotpath = "plots_hist_new"
+    plotname = "polyakov_loop_su3_$(ens)_scatter.pdf"
+    ispath(plotpath) || mkpath(plotpath)
     plot_poly_overview(an,up,poly,plotpath,plotname,first(repeats),ens;f1,f2)
 end
