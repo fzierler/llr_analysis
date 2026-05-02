@@ -3,21 +3,12 @@ Pkg.activate(".")
 Pkg.instantiate()
 using LLRParsing
 using HDF5
-using Plots
+using Makie
+using CairoMakie
 using LaTeXStrings
 using PDFmerger
 using ProgressMeter
-gr(
-    size = (425, 282),
-    fontfamily = "Computer Modern",
-    legend = :topright,
-    frame = :box,
-    titlefontsize = 10,
-    legendfontsize = 7,
-    tickfontsize = 7,
-    labelfontsize = 10,
-    left_margin = 0Plots.mm,
-)
+using Makie.StructArrays
 
 # S0 is the same as Ek in David's code
 # an is the same as -a in David's code
@@ -52,6 +43,7 @@ function plot_poly_overview(an,up,poly,plotpath,plotname,repeat,ens;f1,f2)
 end
 
 h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
+h5file = "data_assets/su3/all_su3_sorted.hdf5"
 h5 = h5open(h5file)
 for ens in filter(!isequal("provenance"),keys(h5))    
     # lattice volume
@@ -62,17 +54,29 @@ for ens in filter(!isequal("provenance"),keys(h5))
     an = read(h5["$ens/$(first(repeats))"],"an_fxa")
     S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
     poly = read(h5["$ens/$(first(repeats))"],"poly_fxa")
-    up = S0/(6Nt*Ns^3)
-
+    
     # for Z2 symmetric theories the polyakov loop is real
     # for ZN symmetric theories the polyakov loop is complex
-    poly = real.(poly)
+    poly_re = real.(poly)
+    poly_im = imag.(poly)
+    poly_ang = angle.(poly)
+    poly_abs = abs.(poly)
+    up = repeat(S0/(6Nt*Ns^3),1,size(poly,2))
+
+    points = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
+    points = StructArray{Point2f}((vec(up), vec(poly_im)))
+
+    fig = Figure()
+    ax = Axis(fig[1, 1], title = "Title")
+    datashader!(ax,points,colormap=[:transparent, :black])
+    save("$ens.pdf",fig)
+    break 
 
     # frequency of plotting  (for smaller files)
-    f1 = 50
-    f2 = 500
-    plotpath = "plots_hist_new"
-    plotname = "polyakov_loop_su3_$(ens)_scatter.pdf"
-    ispath(plotpath) || mkpath(plotpath)
-    plot_poly_overview(an,up,poly,plotpath,plotname,first(repeats),ens;f1,f2)
+    # f1 = 50
+    # f2 = 500
+    # plotpath = "plots_hist_new"
+    # plotname = "polyakov_loop_su3_$(ens)_scatter.pdf"
+    # ispath(plotpath) || mkpath(plotpath)
+    # plot_poly_overview(an,up,poly,plotpath,plotname,first(repeats),ens;f1,f2)
 end
