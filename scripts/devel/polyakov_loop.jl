@@ -36,6 +36,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
     S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
     poly = read(h5["$ens/$(first(repeats))"],"poly_fxa")
     E = read(h5["$ens/$(first(repeats))"],"E_fxa")
+    dS = read(h5["$ens/$(first(repeats))/Rep_0"],"dS0")
     # don't plot anything if there is no data 
     isempty(poly) && continue
     
@@ -46,6 +47,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
     poly_ang = angle.(poly)
     poly_abs = abs.(poly)
     up = E/(6Nt*Ns^3)
+    up_mid = S0/(6Nt*Ns^3)
 
     # set up points for plotting 
     points_re = StructArray{Point2f}((vec(up), vec(poly_re)))
@@ -53,7 +55,6 @@ for ens in filter(!isequal("provenance"),keys(h5))
     points3D = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
 
     # TODO:
-    # 2) Grid for energy intervals
     # 3) Add scatter plot/histogram of fixed energy 
     # 4) Add corresponding hightlight to shader plot
     # 5) Add a plot of an vs. up 
@@ -71,5 +72,6 @@ for ens in filter(!isequal("provenance"),keys(h5))
         ax = Axis(fig[1, 1]; title, xlabel, ylabel = L"\text{Im}(\ell_p)")
         datashader!(ax,points_re,colormap=[:transparent, :grey, :black])
     end
+    vlines!(ax,up_mid,color=:gray,alpha=0.5,linewidth=1)
     save("$(group)_$ens.pdf",fig)
 end
