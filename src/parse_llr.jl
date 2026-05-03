@@ -87,6 +87,7 @@ function parse_llr(file)
 
     S0_fxa = Float64[]
     a_fxa = Float64[]
+    E_fxa = Float64[]
 
     llr_therm = Int[]
     llr_meas = Int[]
@@ -106,11 +107,15 @@ function parse_llr(file)
         if startswith(line, "[SYSTEM][0]Process finalized.")
             is_fxa = false
         end
-        if !is_fxa && startswith(line,"[ROBBINSMONRO][10]Fixed a MC Step")
-            if !isempty(S0) && !isempty(a) && isempty(S0_fxa) && isempty(a_fxa)
+        if startswith(line,"[ROBBINSMONRO][10]Fixed a MC Step")
+            if !is_fxa && !isempty(S0) && !isempty(a) && isempty(S0_fxa) && isempty(a_fxa)
                 is_fxa = true
                 append!(S0_fxa, S0[end])
                 append!(a_fxa, a[end])
+            end
+            if is_fxa
+                pos = findlast('=',line) + 1
+                append!(E_fxa, parse(Float64, line[pos:end]))
             end
         end
         if startswith(line, "[MAIN][0]")
@@ -177,7 +182,7 @@ function parse_llr(file)
     llr_therm = only(unique(llr_therm))
     llr_meas = only(unique(llr_meas))
     # end function and returned parsed information
-    return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas, E_therm, E_meas
+    return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas, E_therm, E_meas, E_fxa
 end
 function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filename = "out_0")
     fid = h5open(h5file, "cw")
@@ -217,7 +222,7 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
         for rep in replica_dirs[repeat]
             file = joinpath(dir, repeat, rep, filename)
             a0 = parse_initial_a(file)
-            dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, llr_therm, llr_meas, E_therm, E_meas = parse_llr(file)
+            dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, llr_therm, llr_meas, E_therm, E_meas, E_fxa = parse_llr(file)
             write(fid, joinpath(name, repeat, rep, "dS0"), dS0)
             write(fid, joinpath(name, repeat, rep, "S0"), S0)
             write(fid, joinpath(name, repeat, rep, "a0"), a0)
@@ -226,6 +231,7 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
             write(fid, joinpath(name, repeat, rep, "is_rm"), is_rm)
             write(fid, joinpath(name, repeat, rep, "S0_fxa"), S0_fxa)
             write(fid, joinpath(name, repeat, rep, "a_fxa"), a_fxa)
+            write(fid, joinpath(name, repeat, rep, "E_fxa"), E_fxa)
             write(fid, joinpath(name, repeat, rep, "poly"), poly)
             write(fid, joinpath(name, repeat, rep, "llr_therm"), llr_therm)
             write(fid, joinpath(name, repeat, rep, "llr_meas"), llr_meas)
@@ -307,7 +313,8 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
             write(dset, "a0", a0)
         end
         # sort the results of fixed_a calculations
-        an_fxa, S0_fxa, poly_fxa = sort_poly_data(h5dset,run,j)
+        an_fxa, S0_fxa, poly_fxa, E_fxa = sort_poly_data(h5dset,run,j)
+        write(h5dset_out["$run/$j"],"E_fxa",E_fxa)
         write(h5dset_out["$run/$j"],"an_fxa",an_fxa)
         write(h5dset_out["$run/$j"],"S0_fxa",S0_fxa)
         write(h5dset_out["$run/$j"],"poly_fxa",poly_fxa)
@@ -333,7 +340,7 @@ function sort_poly_data(h5,ens,repeat)
     
     # if we don't have any measurements, then we return empty arrays
     if iszero(nfxa_swap) || iszero(npoly_meas)
-        return Float64[], Float64[], Float64[]
+        return Float64[], Float64[], Float64[], Float64[]
     end
     # reconstruct number of measurements between swaps from the total number of 
     # measurements of the polyakov loop
@@ -342,15 +349,18 @@ function sort_poly_data(h5,ens,repeat)
     S0_fxa = zeros(Nrep, nfxa_swap)
     an_fxa = zeros(Nrep, nfxa_swap)
     poly_fxa = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
+    E_fxa = zeros(Nrep, nfxa_meas, nfxa_swap)
 
     S0_fxa_sorted = zeros(Nrep, nfxa_swap)
     an_fxa_sorted = zeros(Nrep, nfxa_swap)
     poly_fxa_sorted = zeros(ComplexF64, (Nrep, nfxa_meas, nfxa_swap))
+    E_fxa_sorted = zeros(Nrep, nfxa_meas, nfxa_swap)
 
     for i in 1:Nrep
         S0_fxa[i, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "S0_fxa")
         an_fxa[i, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "a_fxa")
         poly_fxa[i, :, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "poly")
+        E_fxa[i, :, :] = read(h5["$ens/$repeat/Rep_$(i - 1)"], "E_fxa")
     end
 
     perm = [ sortperm(S0_fxa[:,i]) for i in axes(S0_fxa,2) ]
@@ -358,6 +368,7 @@ function sort_poly_data(h5,ens,repeat)
         S0_fxa_sorted[:,i] .= S0_fxa[p,i] 
         an_fxa_sorted[:,i] .= an_fxa[p,i] 
         poly_fxa_sorted[:,:,i] .= poly_fxa[p,:,i] 
+        E_fxa_sorted[:,:,i] .= E_fxa[p,:,i] 
     end
 
     # the central energies and coefficients an do not change
@@ -365,5 +376,6 @@ function sort_poly_data(h5,ens,repeat)
     S0 = S0_fxa_sorted[:,1]
     an = an_fxa_sorted[:,1]
     poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
-    return an, S0, poly
+    E = reshape(E_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
+    return an, S0, poly, E
 end

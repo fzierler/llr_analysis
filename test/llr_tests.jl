@@ -12,7 +12,7 @@ RM = RM[RM[:, 7] .== 0, :]
 RM = sortslices(RM, dims = 1, by = x -> (x[1]))
 fa = sortslices(fa, dims = 1, by = x -> (x[8]))
 
-dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, E_therm, E_meas = parse_llr(fileSp4)
+dS0, S0, plaq, a, is_rm, S0_fxa, a_fxa, poly, E_therm, E_meas, E_fxa = parse_llr(fileSp4)
 
 a_fxa_david = Float64[]
 S0_fxa_david = Float64[]

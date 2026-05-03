@@ -19,31 +19,9 @@ function logZ_fxa(S_fxa, S0, an, β)
     # figure out sorting of S0_fxa
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
-function plot_poly_overview(an,up,poly,plotpath,plotname,repeat,ens;f1,f2)
-    Nrep = length(an)
 
-    title = LLRParsing.fancy_title(ens)*", repeat #$repeat"
-    plt_an = scatter(up,an,label="",title=title,ylabel=L"a_n",xlabel=L"u_p")
-
-    plt = scatter(up,poly[:,1:f2:end],label="",color=:black,alpha=0.2,ms=2)
-    plot!(plt,ylabel=L"\ell_p",xlabel=L"u_p",title=title)
-
-    kws = (bins=:sqrt,normalize=:probability,xlabel=L"\ell_p",title=title)
-    plts = [histogram(poly[i,1:f1:end],label="replica #$i"; kws...) for i in 1:Nrep]
-
-    tmpfiles = [ tempname()*"_$i.pdf" for i in eachindex(plts) ]
-    @showprogress desc=ens for (i,p) in enumerate(plts)
-        b0 = LLRParsing._highlight_replica!(deepcopy(plt),up,i; color = :green, alpha = 0.5, labels = "replica")
-        a0 = LLRParsing._highlight_replica!(deepcopy(plt_an),up,i; color = :green, alpha = 0.5, labels = "replica")
-        p0 = plot(p, b0, a0, layout = grid(3, 1), size = (425, 846))
-        savefig(p0,tmpfiles[i])
-    end
-    # combine these plots into a single file
-    merge_pdfs(tmpfiles,joinpath(plotpath,plotname),cleanup=true)
-end
-
-h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
+h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 h5 = h5open(h5file)
 for ens in filter(!isequal("provenance"),keys(h5))    
     # lattice volume
@@ -54,6 +32,9 @@ for ens in filter(!isequal("provenance"),keys(h5))
     an = read(h5["$ens/$(first(repeats))"],"an_fxa")
     S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
     poly = read(h5["$ens/$(first(repeats))"],"poly_fxa")
+    E = read(h5["$ens/$(first(repeats))"],"E_fxa")
+    # don't plot anything if there is no data 
+    isempty(poly) && continue
     
     # for Z2 symmetric theories the polyakov loop is real
     # for ZN symmetric theories the polyakov loop is complex
@@ -61,22 +42,14 @@ for ens in filter(!isequal("provenance"),keys(h5))
     poly_im = imag.(poly)
     poly_ang = angle.(poly)
     poly_abs = abs.(poly)
-    up = repeat(S0/(6Nt*Ns^3),1,size(poly,2))
+    up = E/(6Nt*Ns^3)
 
-    points = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
-    points = StructArray{Point2f}((vec(up), vec(poly_im)))
+    # set up points for plotting 
+    points = StructArray{Point2f}((vec(up), vec(poly_re)))
 
     fig = Figure()
+    set_theme!(theme_latexfonts())
     ax = Axis(fig[1, 1], title = "Title")
-    datashader!(ax,points,colormap=[:transparent, :black])
+    datashader!(ax,points,colormap=[:transparent, :grey, :black])
     save("$ens.pdf",fig)
-    break 
-
-    # frequency of plotting  (for smaller files)
-    # f1 = 50
-    # f2 = 500
-    # plotpath = "plots_hist_new"
-    # plotname = "polyakov_loop_su3_$(ens)_scatter.pdf"
-    # ispath(plotpath) || mkpath(plotpath)
-    # plot_poly_overview(an,up,poly,plotpath,plotname,first(repeats),ens;f1,f2)
 end
