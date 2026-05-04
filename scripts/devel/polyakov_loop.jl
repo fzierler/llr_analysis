@@ -20,8 +20,8 @@ function logZ_fxa(S_fxa, S0, an, β)
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
 
-h5file = "data_assets/su3/all_su3_sorted.hdf5"
 h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
+h5file = "data_assets/su3/all_su3_sorted.hdf5"
 
 h5 = h5open(h5file)
 for ens in filter(!isequal("provenance"),keys(h5))    
@@ -49,29 +49,45 @@ for ens in filter(!isequal("provenance"),keys(h5))
     up = E/(6Nt*Ns^3)
     up_mid = S0/(6Nt*Ns^3)
 
+    # select replica to highlight 
+    rep_ind = 1
+
     # set up points for plotting 
     points_re = StructArray{Point2f}((vec(up), vec(poly_re)))
     points_im = StructArray{Point2f}((vec(up), vec(poly_im)))
     points3D = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
+    points_cplx = StructArray{Point2f}((vec(poly_re[rep_ind,:]), vec(poly_im[rep_ind,:])))
 
     # TODO:
-    # 3) Add scatter plot/histogram of fixed energy 
     # 4) Add corresponding hightlight to shader plot
-    # 5) Add a plot of an vs. up 
     # 6) Average over repeats, and increase dpi
 
-    fig = Figure()
+    fig = Figure(size = (600*2, 3*450))
     title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
     xlabel = L"u_p"
     set_theme!(theme_latexfonts())
 
     if group == "SU(3)"
-        ax = Axis(fig[1, 1]; title, xlabel, ylabel = L"\text{Im}(\ell_p)")
-        datashader!(ax,points3D,agg = Makie.AggMean(), operation = identity)
+        poly_label = L"\text{Im}(\ell_p)"
+        ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
+        ax0B = Axis(fig[1, 2]; title, xlabel = poly_label)
+        ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
+        ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
+        datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity)
+        datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black])
+        hist!(ax0,vec(poly_im[rep_ind,:]))
+        hist!(ax3,vec(poly_im),direction=:x)
     else
-        ax = Axis(fig[1, 1]; title, xlabel, ylabel = L"\text{Im}(\ell_p)")
-        datashader!(ax,points_re,colormap=[:transparent, :grey, :black])
+        poly_label = L"\text{Im}(\ell_p)"
+        ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
+        ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
+        ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
+        datashader!(ax1,points_re,colormap=[:transparent, :grey, :black])
+        hist!(ax0,vec(poly_re[rep_ind,:]))
+        hist!(ax3,vec(poly_re),direction=:x)
     end
-    vlines!(ax,up_mid,color=:gray,alpha=0.5,linewidth=1)
+    ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n")
+    scatter!(ax2,up_mid,an)
+    vlines!(ax1,up_mid,color=:gray,alpha=0.5,linewidth=1)
     save("$(group)_$ens.pdf",fig)
 end
