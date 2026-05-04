@@ -49,6 +49,10 @@ for ens in filter(!isequal("provenance"),keys(h5))
     up = E/(6Nt*Ns^3)
     up_mid = S0/(6Nt*Ns^3)
 
+    # Number of bins to use for a histogram for a fixed energy interval 
+    n_meas = size(poly,2)
+    n_bins = Int(round(sqrt(sqrt(n_meas))))
+
     # TODO:
     # 4) Add corresponding hightlight to shader plot
     # 6) Average over repeats, and increase dpi
@@ -76,18 +80,18 @@ for ens in filter(!isequal("provenance"),keys(h5))
             ax0B = Axis(fig[1, 2]; title, xlabel = poly_label)
             ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-            datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=2)
-            datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], binsize=2)
-            hist!(ax0,vec(poly_im[rep_ind,:]))
-            hist!(ax3,vec(poly_im),direction=:x)
+            datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=3)
+            datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], binsize=3)
+            hist!(ax0,vec(poly_im[rep_ind,:]), normalization = :pdf, bins = n_bins)
+            hist!(ax3,vec(poly_im),direction=:x, bins = n_bins)
         else
             poly_label = L"\text{Im}(\ell_p)"
             ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
             ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-            datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=2)
-            hist!(ax0,vec(poly_re[rep_ind,:]))
-            hist!(ax3,vec(poly_re),direction=:x)
+            datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=3)
+            hist!(ax0,vec(poly_re[rep_ind,:]), normalization = :pdf, bins = n_bins)
+            hist!(ax3,vec(poly_re),direction=:x, bins = n_bins)
         end
         ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n")
         scatter!(ax2,up_mid,an)
