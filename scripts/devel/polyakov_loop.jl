@@ -39,7 +39,9 @@ h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 # 1) Average over repeats
 
 h5 = h5open(h5file)
-for ens in filter(!isequal("provenance"),keys(h5))    
+ensembles = filter(!isequal("provenance"),keys(h5))
+
+for ens in ensembles
     # lattice volume
     Nt = read(h5[ens],"Nt")
     Ns = read(h5[ens],"Ns")
@@ -48,15 +50,24 @@ for ens in filter(!isequal("provenance"),keys(h5))
     repeats = read(h5[ens],"repeats")
     group = read(h5[ens],"group")
 
-    # First determine the size of the required arrays, then read in all the data 
-    S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
-    an = read(h5["$ens/$(first(repeats))"],"an_fxa")
-    
+    # Read all central energies and coefficients a_n
+    # If no fixed a-calculation was done, then an empty array will be returned 
+    S0 = [ read(h5["$ens/$r"],"S0_fxa") for r in repeats]
+    an = [ read(h5["$ens/$r"],"an_fxa") for r in repeats]
     # don't plot anything if there is no data 
-    isempty(S0) && continue
+    if any(isempty,S0) || any(isempty,an) 
+        continue
+    end
 
-    # Obtain fixed-a parameters
-    nfxa_meas, nfxa_swap = size(h5["$ens/$(first(repeats))/E_fxa"])[2:3]
+    # If we proceed with the plot then we have performed the measurements 
+    # everywhere. Thus all entries of an and S0 are idential and we can pick
+    # one representative 
+    S0 = first(S0)
+    an = first(an)
+
+    # Obtain number of measurements and swaps for fixed-a calculation
+    s = size(h5["$ens/$(first(repeats))/E_fxa"])
+    nfxa_meas, nfxa_swap = s[2:3]
 
     # Only these two arrays contain data that changes across repeats
     E = zeros(Nrep,Nint,nfxa_meas,nfxa_swap)
