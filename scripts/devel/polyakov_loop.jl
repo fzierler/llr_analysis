@@ -9,6 +9,7 @@ using LaTeXStrings
 using PDFmerger
 using ProgressMeter
 using Makie.StructArrays
+using Statistics
 
 # S0 is the same as Ek in David's code
 # an is the same as -a in David's code
@@ -30,6 +31,12 @@ function highlight_range!(ax,xs,ind,xmin,xmax)
         x1, x2 = xs[ind-1], xs[ind]
     end
     vspan!(ax,[x1],[x2],color=(:green, 0.5))
+end
+function stdmean(X;dims=1,bin=1)
+    N = size(X)[dims]
+    m = dropdims(mean(X;dims);dims)
+    s = dropdims(std(X;dims);dims)/sqrt(N/bin)
+    return m, s
 end
 
 function main(h5file)
@@ -56,10 +63,16 @@ function main(h5file)
         end
 
         # If we proceed with the plot then we have performed the measurements 
-        # everywhere. Thus all entries of an and S0 are idential and we can pick
-        # one representative 
+        # everywhere. Thus all entries of  S0 are idential and we can pick
+        # one representative.
+        # For the an's we have different values for every repeat and we rehape
+        # the data into an array of size (N_intervals,N_repeats)
         S0 = first(S0)
-        an = first(an)
+        an = hcat(an...)
+
+        # Determine mean and standard deviation of the mean for the 
+        # fixed values of an
+        an_mean, an_std = stdmean(an,dims=2)
 
         # Obtain number of measurements and swaps for fixed-a calculation
         s = size(h5["$ens/$(first(repeats))/E_fxa"])
@@ -110,7 +123,7 @@ function main(h5file)
             # set up points for plotting 
             points_cplx = StructArray{Point2f}((vec(poly_re[:,rep_ind,:,:]), vec(poly_im[:,rep_ind,:,:])))
 
-            fig = Figure(size = (600*2, 3*450))
+            fig = Figure(size = (400*2, 3*350))
             title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
             xlabel = L"u_p"
             set_theme!(theme_latexfonts())
@@ -134,8 +147,14 @@ function main(h5file)
                 hist!(ax0,vec(poly_re[:,rep_ind,:,:]), normalization = :pdf, bins = n_bins)
                 hist!(ax3,vec(poly_re),direction=:x, bins = n_bins)
             end
+            # Add a plot of the fixed-values of a_n averaged over repeats
             ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n", limits = (extrema(up), nothing))
-            scatter!(ax2,up_mid,an)
+            scatter!(ax2,up_mid,an_mean)
+            scatter!(ax2,up_mid,an_mean)
+            errorbars!(ax2, up_mid, an_mean, an_std, whiskerwidth = 10)
+            # Add a histogram of the avilable values of a_n for the selected energy interval
+            ax4 = Axis(fig[3, 2]; title, ylabel = L"a_n")
+            hist!(ax4, an[rep_ind,:], bins = 15)
             # highlight energy interval
             highlight_range!(ax1,up_mid .+ δup/2,rep_ind,extrema(up)...)
             highlight_range!(ax2,up_mid .+ δup/2,rep_ind,extrema(up)...)
@@ -146,6 +165,7 @@ function main(h5file)
         tmp_plots = [joinpath(plotpath,"$(group)_$(ens)_ind$(rep_ind).pdf") for rep_ind in 1:Nint]
         merge_pdfs(tmp_plots, joinpath(plotpath,"$(group)_$(ens).pdf"), cleanup=true)
     end
+    return nothing
 end
 
 h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
