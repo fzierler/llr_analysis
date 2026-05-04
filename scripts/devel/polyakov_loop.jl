@@ -60,7 +60,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
     ispath(plotpath) || mkpath(plotpath)
 
     # select replica to highlight 
-    for rep_ind in 1:Nint
+    @showprogress desc="plot Polyakov loop $ens" for rep_ind in 1:Nint
 
         # set up points for plotting 
         points_cplx = StructArray{Point2f}((vec(poly_re[rep_ind,:]), vec(poly_im[rep_ind,:])))
@@ -76,8 +76,8 @@ for ens in filter(!isequal("provenance"),keys(h5))
             ax0B = Axis(fig[1, 2]; title, xlabel = poly_label)
             ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-            datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity)
-            datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black])
+            datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, bins=2)
+            datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], bins=2)
             hist!(ax0,vec(poly_im[rep_ind,:]))
             hist!(ax3,vec(poly_im),direction=:x)
         else
@@ -93,6 +93,8 @@ for ens in filter(!isequal("provenance"),keys(h5))
         scatter!(ax2,up_mid,an)
         vlines!(ax1,up_mid,color=:gray,alpha=0.5,linewidth=1)
         # save figure
-        save(joinpath(plotpath,"$(group)_$(ens)_$(rep_ind).pdf"),fig)
+        save(joinpath(plotpath,"$(group)_$(ens)_ind$(rep_ind).pdf"),fig)
     end
+    tmp_plots = [joinpath(plotpath,"$(group)_$(ens)_ind$(rep_ind).pdf") for rep_ind in 1:Nint]
+    merge_pdfs(tmp_plots, joinpath(plotpath,"$(group)_$(ens).pdf"), cleanup=true)
 end
