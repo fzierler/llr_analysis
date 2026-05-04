@@ -313,11 +313,13 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
             write(dset, "a0", a0)
         end
         # sort the results of fixed_a calculations
-        an_fxa, S0_fxa, poly_fxa, E_fxa = sort_poly_data(h5dset,run,j)
+        an_fxa, S0_fxa, poly_fxa, E_fxa, nfxa_meas, nfxa_swap = sort_poly_data(h5dset,run,j)
         write(h5dset_out["$run/$j"],"E_fxa",E_fxa)
         write(h5dset_out["$run/$j"],"an_fxa",an_fxa)
         write(h5dset_out["$run/$j"],"S0_fxa",S0_fxa)
         write(h5dset_out["$run/$j"],"poly_fxa",poly_fxa)
+        write(h5dset_out["$run/$j"],"nfxa_meas",nfxa_meas)
+        write(h5dset_out["$run/$j"],"nfxa_swap",nfxa_swap)
     end
     write(h5dset_out, joinpath(run, "N_replicas"), N_replicas)
     write(h5dset_out, joinpath(run, "N_repeats"), N_repeats)
@@ -340,7 +342,7 @@ function sort_poly_data(h5,ens,repeat)
     
     # if we don't have any measurements, then we return empty arrays
     if iszero(nfxa_swap) || iszero(npoly_meas)
-        return Float64[], Float64[], Float64[], Float64[]
+        return Float64[], Float64[], Float64[], Float64[], 0, 0
     end
     # reconstruct number of measurements between swaps from the total number of 
     # measurements of the polyakov loop
@@ -375,7 +377,5 @@ function sort_poly_data(h5,ens,repeat)
     # we can just grab one set of values
     S0 = S0_fxa_sorted[:,1]
     an = an_fxa_sorted[:,1]
-    poly = reshape(poly_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
-    E = reshape(E_fxa_sorted,(Nrep,nfxa_meas*nfxa_swap))
-    return an, S0, poly, E
+    return an, S0, poly_fxa_sorted, E_fxa_sorted, nfxa_meas, nfxa_swap
 end

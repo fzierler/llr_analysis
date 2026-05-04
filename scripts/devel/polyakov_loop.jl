@@ -19,6 +19,8 @@ function logZ_fxa(S_fxa, S0, an, β)
     # figure out sorting of S0_fxa
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
+# For highlighting the individual energy ranges, we want to take into account 
+# that the first and last interval only have a one-sided constraint
 function highlight_range!(ax,xs,ind,xmin,xmax)
     if ind == 1
         x1, x2 = xmin, xs[1]
@@ -30,8 +32,8 @@ function highlight_range!(ax,xs,ind,xmin,xmax)
     vspan!(ax,[x1],[x2],color=(:green, 0.5))
 end
 
-h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
+h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 
 # TODO:
 # 1) Average over repeats
@@ -42,16 +44,28 @@ for ens in filter(!isequal("provenance"),keys(h5))
     Nt = read(h5[ens],"Nt")
     Ns = read(h5[ens],"Ns")
     Nint = read(h5[ens],"N_replicas")
+    Nrep = read(h5[ens],"N_repeats")
     repeats = read(h5[ens],"repeats")
     group = read(h5[ens],"group")
-    # obtain fixed-a parameters
-    an = read(h5["$ens/$(first(repeats))"],"an_fxa")
+
+    # First determine the size of the required arrays, then read in all the data 
     S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
-    poly = read(h5["$ens/$(first(repeats))"],"poly_fxa")
-    E = read(h5["$ens/$(first(repeats))"],"E_fxa")
-    # don't plot anything if there is no data 
-    isempty(poly) && continue
+    an = read(h5["$ens/$(first(repeats))"],"an_fxa")
     
+    # don't plot anything if there is no data 
+    isempty(S0) && continue
+
+    # Obtain fixed-a parameters
+    nfxa_meas, nfxa_swap = size(h5["$ens/$(first(repeats))/E_fxa"])[2:3]
+
+    # Only these two arrays contain data that changes across repeats
+    E = zeros(Nrep,Nint,nfxa_meas,nfxa_swap)
+    poly = zeros(ComplexF64,(Nrep,Nint,nfxa_meas,nfxa_swap))
+    for (i,r) in enumerate(repeats)
+        E[i,:,:,:] .= read(h5["$ens/$r"],"E_fxa")
+        poly[i,:,:,:] .= read(h5["$ens/$r"],"poly_fxa")
+    end
+
     # for Z2 symmetric theories the polyakov loop is real
     # for ZN symmetric theories the polyakov loop is complex
     poly_re = real.(poly)
@@ -63,7 +77,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
     δup = up_mid[2] - up_mid[1]
 
     # Number of bins to use for a histogram for a fixed energy interval 
-    n_meas = size(poly,2)
+    n_meas = size(poly,3)*size(poly,4)
     n_bins = Int(round(sqrt(n_meas)))
 
     # find extrema of polyakov loop for setting plot ranges
@@ -84,7 +98,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
     @showprogress desc="plot Polyakov loop $ens" for rep_ind in 1:Nint
 
         # set up points for plotting 
-        points_cplx = StructArray{Point2f}((vec(poly_re[rep_ind,:]), vec(poly_im[rep_ind,:])))
+        points_cplx = StructArray{Point2f}((vec(poly_re[:,rep_ind,:,:]), vec(poly_im[:,rep_ind,:,:])))
 
         fig = Figure(size = (600*2, 3*450))
         title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
@@ -99,7 +113,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
             datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=3)
             datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], binsize=3)
-            hist!(ax0,vec(poly_im[rep_ind,:]), normalization = :pdf, bins = n_bins)
+            hist!(ax0,vec(poly_im[:,rep_ind,:,:]), normalization = :pdf, bins = n_bins)
             hist!(ax3,vec(poly_im),direction=:x, bins = n_bins)
         else
             poly_label = L"\text{Im}(\ell_p)"
@@ -107,7 +121,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
             ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label, limits = (extrema(up), nothing))
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
             datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=3)
-            hist!(ax0,vec(poly_re[rep_ind,:]), normalization = :pdf, bins = n_bins)
+            hist!(ax0,vec(poly_re[:,rep_ind,:,:]), normalization = :pdf, bins = n_bins)
             hist!(ax3,vec(poly_re),direction=:x, bins = n_bins)
         end
         ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n", limits = (extrema(up), nothing))
