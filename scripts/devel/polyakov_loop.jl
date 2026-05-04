@@ -123,7 +123,7 @@ function main(h5file)
             # set up points for plotting 
             points_cplx = StructArray{Point2f}((vec(poly_re[:,rep_ind,:,:]), vec(poly_im[:,rep_ind,:,:])))
 
-            fig = Figure(size = (400*2, 3*350))
+            fig = Figure(size = (400*2, 3*250))
             title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
             xlabel = L"u_p"
             set_theme!(theme_latexfonts())
@@ -169,5 +169,6 @@ function main(h5file)
 end
 
 h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
+main(h5file)
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
 main(h5file)
