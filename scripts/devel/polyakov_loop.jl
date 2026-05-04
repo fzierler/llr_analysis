@@ -49,45 +49,50 @@ for ens in filter(!isequal("provenance"),keys(h5))
     up = E/(6Nt*Ns^3)
     up_mid = S0/(6Nt*Ns^3)
 
-    # select replica to highlight 
-    rep_ind = 1
-
-    # set up points for plotting 
-    points_re = StructArray{Point2f}((vec(up), vec(poly_re)))
-    points_im = StructArray{Point2f}((vec(up), vec(poly_im)))
-    points3D = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
-    points_cplx = StructArray{Point2f}((vec(poly_re[rep_ind,:]), vec(poly_im[rep_ind,:])))
-
     # TODO:
     # 4) Add corresponding hightlight to shader plot
     # 6) Average over repeats, and increase dpi
+    points_re = StructArray{Point2f}((vec(up), vec(poly_re)))
+    points_im = StructArray{Point2f}((vec(up), vec(poly_im)))
+    points3D = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
 
-    fig = Figure(size = (600*2, 3*450))
-    title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
-    xlabel = L"u_p"
-    set_theme!(theme_latexfonts())
+    plotpath = "tmp_poly_plots"
+    ispath(plotpath) || mkpath(plotpath)
 
-    if group == "SU(3)"
-        poly_label = L"\text{Im}(\ell_p)"
-        ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
-        ax0B = Axis(fig[1, 2]; title, xlabel = poly_label)
-        ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
-        ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-        datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity)
-        datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black])
-        hist!(ax0,vec(poly_im[rep_ind,:]))
-        hist!(ax3,vec(poly_im),direction=:x)
-    else
-        poly_label = L"\text{Im}(\ell_p)"
-        ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
-        ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
-        ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-        datashader!(ax1,points_re,colormap=[:transparent, :grey, :black])
-        hist!(ax0,vec(poly_re[rep_ind,:]))
-        hist!(ax3,vec(poly_re),direction=:x)
+    # select replica to highlight 
+    for rep_ind in 1:Nint
+
+        # set up points for plotting 
+        points_cplx = StructArray{Point2f}((vec(poly_re[rep_ind,:]), vec(poly_im[rep_ind,:])))
+
+        fig = Figure(size = (600*2, 3*450))
+        title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
+        xlabel = L"u_p"
+        set_theme!(theme_latexfonts())
+
+        if group == "SU(3)"
+            poly_label = L"\text{Im}(\ell_p)"
+            ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
+            ax0B = Axis(fig[1, 2]; title, xlabel = poly_label)
+            ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
+            ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
+            datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity)
+            datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black])
+            hist!(ax0,vec(poly_im[rep_ind,:]))
+            hist!(ax3,vec(poly_im),direction=:x)
+        else
+            poly_label = L"\text{Im}(\ell_p)"
+            ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
+            ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
+            ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
+            datashader!(ax1,points_re,colormap=[:transparent, :grey, :black])
+            hist!(ax0,vec(poly_re[rep_ind,:]))
+            hist!(ax3,vec(poly_re),direction=:x)
+        end
+        ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n")
+        scatter!(ax2,up_mid,an)
+        vlines!(ax1,up_mid,color=:gray,alpha=0.5,linewidth=1)
+        # save figure
+        save(joinpath(plotpath,"$(group)_$(ens)_$(rep_ind).pdf"),fig)
     end
-    ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n")
-    scatter!(ax2,up_mid,an)
-    vlines!(ax1,up_mid,color=:gray,alpha=0.5,linewidth=1)
-    save("$(group)_$ens.pdf",fig)
 end
