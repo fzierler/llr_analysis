@@ -51,7 +51,14 @@ for ens in filter(!isequal("provenance"),keys(h5))
 
     # Number of bins to use for a histogram for a fixed energy interval 
     n_meas = size(poly,2)
-    n_bins = Int(round(sqrt(sqrt(n_meas))))
+    n_bins = Int(round(sqrt(n_meas)))
+
+    # find extrema of polyakov loop for setting plot ranges
+    # (enforce a symmetric intervall)
+    poly_im_e = maximum(extrema(abs,poly_im))
+    poly_re_e = maximum(extrema(abs,poly_re))
+    poly_im_extr = (-poly_im_e,+poly_im_e)
+    poly_re_extr = (-poly_re_e,+poly_re_e)
 
     # TODO:
     # 4) Add corresponding hightlight to shader plot
@@ -76,8 +83,8 @@ for ens in filter(!isequal("provenance"),keys(h5))
 
         if group == "SU(3)"
             poly_label = L"\text{Im}(\ell_p)"
-            ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
-            ax0B = Axis(fig[1, 2]; title, xlabel = poly_label)
+            ax0 = Axis(fig[1, 1]; title, xlabel = poly_label, limits = (poly_im_extr, nothing))
+            ax0B = Axis(fig[1, 2]; title, xlabel = poly_label, limits = (poly_re_extr, poly_im_extr))
             ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
             datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=3)
@@ -86,7 +93,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
             hist!(ax3,vec(poly_im),direction=:x, bins = n_bins)
         else
             poly_label = L"\text{Im}(\ell_p)"
-            ax0 = Axis(fig[1, 1]; title, xlabel = poly_label)
+            ax0 = Axis(fig[1, 1]; title, xlabel = poly_label, limits = (poly_re_extr, nothing))
             ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
             datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=3)
