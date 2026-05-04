@@ -19,9 +19,22 @@ function logZ_fxa(S_fxa, S0, an, β)
     # figure out sorting of S0_fxa
     return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
 end
+function highlight_range!(ax,xs,ind,xmin,xmax)
+    if ind == 1
+        x1, x2 = xmin, xs[1]
+    elseif ind == length(xs)
+        x1, x2 = xs[end-1], xmax
+    else
+        x1, x2 = xs[ind-1], xs[ind]
+    end
+    vspan!(ax,[x1],[x2],color=(:green, 0.5))
+end
 
 h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
+
+# TODO:
+# 1) Average over repeats
 
 h5 = h5open(h5file)
 for ens in filter(!isequal("provenance"),keys(h5))    
@@ -36,7 +49,6 @@ for ens in filter(!isequal("provenance"),keys(h5))
     S0 = read(h5["$ens/$(first(repeats))"],"S0_fxa")
     poly = read(h5["$ens/$(first(repeats))"],"poly_fxa")
     E = read(h5["$ens/$(first(repeats))"],"E_fxa")
-    dS = read(h5["$ens/$(first(repeats))/Rep_0"],"dS0")
     # don't plot anything if there is no data 
     isempty(poly) && continue
     
@@ -48,6 +60,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
     poly_abs = abs.(poly)
     up = E/(6Nt*Ns^3)
     up_mid = S0/(6Nt*Ns^3)
+    δup = up_mid[2] - up_mid[1]
 
     # Number of bins to use for a histogram for a fixed energy interval 
     n_meas = size(poly,2)
@@ -60,9 +73,6 @@ for ens in filter(!isequal("provenance"),keys(h5))
     poly_im_extr = (-poly_im_e,+poly_im_e)
     poly_re_extr = (-poly_re_e,+poly_re_e)
 
-    # TODO:
-    # 4) Add corresponding hightlight to shader plot
-    # 6) Average over repeats, and increase dpi
     points_re = StructArray{Point2f}((vec(up), vec(poly_re)))
     points_im = StructArray{Point2f}((vec(up), vec(poly_im)))
     points3D = StructArray{Point3f}((vec(up), vec(poly_im), vec(poly_abs)))
@@ -85,7 +95,7 @@ for ens in filter(!isequal("provenance"),keys(h5))
             poly_label = L"\text{Im}(\ell_p)"
             ax0 = Axis(fig[1, 1]; title, xlabel = poly_label, limits = (poly_im_extr, nothing))
             ax0B = Axis(fig[1, 2]; title, xlabel = poly_label, limits = (poly_re_extr, poly_im_extr))
-            ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
+            ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label, limits = (extrema(up), nothing))
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
             datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=3)
             datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], binsize=3)
@@ -94,15 +104,18 @@ for ens in filter(!isequal("provenance"),keys(h5))
         else
             poly_label = L"\text{Im}(\ell_p)"
             ax0 = Axis(fig[1, 1]; title, xlabel = poly_label, limits = (poly_re_extr, nothing))
-            ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label)
+            ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label, limits = (extrema(up), nothing))
             ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
             datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=3)
             hist!(ax0,vec(poly_re[rep_ind,:]), normalization = :pdf, bins = n_bins)
             hist!(ax3,vec(poly_re),direction=:x, bins = n_bins)
         end
-        ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n")
+        ax2 = Axis(fig[3, 1]; title, xlabel, ylabel = L"a_n", limits = (extrema(up), nothing))
         scatter!(ax2,up_mid,an)
-        vlines!(ax1,up_mid,color=:gray,alpha=0.5,linewidth=1)
+        # highlight energy interval
+        highlight_range!(ax1,up_mid .+ δup/2,rep_ind,extrema(up)...)
+        highlight_range!(ax2,up_mid .+ δup/2,rep_ind,extrema(up)...)
+        vlines!(ax1,up_mid[1:end-1] .+ δup/2,color=:gray,alpha=0.5,linewidth=1)
         # save figure
         save(joinpath(plotpath,"$(group)_$(ens)_ind$(rep_ind).pdf"),fig)
     end
