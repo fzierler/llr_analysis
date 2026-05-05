@@ -181,7 +181,8 @@ end
 # S0 is the same as Ek in David's code
 # an is the same as -a in David's code
 # E  is the sames as S in David's code 
-function logZ_fxa(E, S0, an, β)
+# TODO: Look at performance eventually
+function logZ_fixed_a(E, S0, an, β)
     dS = S0[2] - S0[1]
     # Determine the largest possible exponent for the first energy interval
     # (It will only be used to improve numerical stability)
@@ -201,6 +202,19 @@ function logZ_fxa(E, S0, an, β)
     # everything matches up to here
     return logZ
 end
+function polyakov_loop_power(E, S0, an, β, poly; f=identity)
+    dS = S0[2] - S0[1]
+    obs = zeros(length(S0))
+    log_Z = logZ_fixed_a(E, S0, an, β)
+    
+    for i in eachindex(S0)
+        log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
+        VEV_exp = @. (β * E[i,:,:]) - an[i]*(E[i,:,:] - S0[i]) + log_ρ - log_Z
+        obs[i] = mean(dS .* f.(poly[i,:,:]) .* exp.(VEV_exp))
+    end
+    res = sum(obs)
+    return res
+end
 
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
 
@@ -214,4 +228,8 @@ repeat_id = 1
 E = E_fxa[repeat_id,:,:,:]
 an = an_fxa[:,repeat_id]
 poly = poly_fxa[repeat_id,:,:,:]
-logZ_fxa(E, S0, an, β)
+logZ_fixed_a(E, S0, an, β)
+P1 = polyakov_loop_power(E, S0, an, β, poly; f=x->abs(x)^1)
+P2 = polyakov_loop_power(E, S0, an, β, poly; f=x->abs(x)^2)
+P4 = polyakov_loop_power(E, S0, an, β, poly; f=x->abs(x)^4)
+@show P1, P2, P4
