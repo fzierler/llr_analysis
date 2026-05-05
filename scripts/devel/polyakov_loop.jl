@@ -183,14 +183,23 @@ end
 # E  is the sames as S in David's code 
 function logZ_fxa(E, S0, an, β)
     dS = S0[2] - S0[1]
-    log_ρ = LLRParsing.log_rho(S0[1], S0, dS, an)
     # Determine the largest possible exponent for the first energy interval
     # (It will only be used to improve numerical stability)
     # This expression matches David's code
     lenE = length(E[1,:,:])
-    VEV_exp = @. ( -an[1] + β) * E[1,:,:] + an[1]*S0[1] + log_ρ - log(lenE) + log(dS)
+    log_ρ = LLRParsing.log_rho(S0[1], S0, dS, an)
+    VEV_exp_0 = @. ( -an[1] + β) * E[1,:,:] + an[1]*S0[1] + log_ρ - log(lenE) + log(dS)
+    vmax = maximum(VEV_exp_0)
+    # Now add ap all contributions from every energy interval
+    Z = zeros(length(S0))
+    for i in eachindex(S0)
+        log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
+        VEV_exp = @. (-an[i] + β) * E[i,:,:] + an[i]*S0[i] + log_ρ - log(lenE) + log(dS) - vmax
+        Z[i] = sum(exp,VEV_exp)
+    end
+    logZ = vmax + log(sum(Z))
     # everything matches up to here
-    return nothing
+    return logZ
 end
 
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
@@ -205,5 +214,4 @@ repeat_id = 1
 E = E_fxa[repeat_id,:,:,:]
 an = an_fxa[:,repeat_id]
 poly = poly_fxa[repeat_id,:,:,:]
-
 logZ_fxa(E, S0, an, β)
