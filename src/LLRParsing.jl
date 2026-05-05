@@ -46,5 +46,8 @@ include("provenance.jl")
 export provenance, print_provenance_tex, print_provenance_csv, write_provenance_hdf5
 include("supercooling.jl")
 export supercooling
+include("polyakov_loop.jl")
+export is_fixed_a_measured, read_fixed_data
+export logZ_fixed_a, polyakov_loop_fixed_a
 
 end # module LLRParsing

@@ -29,46 +29,6 @@ function stdmean(X;dims=1,bin=1)
     s = dropdims(std(X;dims);dims)/sqrt(N/bin)
     return m, s
 end
-function fixed_a_measured(h5, ens)
-    repeats = read(h5[ens],"repeats")
-    # Read all central energies and coefficients a_n
-    # If no fixed a-calculation was done, then an empty array will be returned 
-    S0 = [ read(h5["$ens/$r"],"S0_fxa") for r in repeats]
-    an = [ read(h5["$ens/$r"],"an_fxa") for r in repeats]
-    # detrmines if we have done the measurement everywhere
-    if any(isempty,S0) || any(isempty,an) 
-        return false
-    end
-    return true
-end
-
-function read_fixed_data(h5,ens)
-    repeats = read(h5[ens],"repeats")
-    Nrep = read(h5[ens],"N_repeats")
-    Nint = read(h5[ens],"N_replicas")
-    # If we proceed with the plot then we have performed the measurements 
-    # everywhere. Thus all entries of  S0 are idential and we can pick
-    # one representative.
-    # For the an's we have different values for every repeat and we rehape
-    # the data into an array of size (N_intervals,N_repeats)
-    S0 = [ read(h5["$ens/$r"],"S0_fxa") for r in repeats]
-    an = [ read(h5["$ens/$r"],"an_fxa") for r in repeats]
-    S0 = first(S0)
-    an = hcat(an...)
-
-    # Obtain number of measurements and swaps for fixed-a calculation
-    s = size(h5["$ens/$(first(repeats))/E_fxa"])
-    nfxa_meas, nfxa_swap = s[2:3]
-
-    # Only these two arrays contain data that changes across repeats
-    E = zeros(Nrep,Nint,nfxa_meas,nfxa_swap)
-    poly = zeros(ComplexF64,(Nrep,Nint,nfxa_meas,nfxa_swap))
-    for (i,r) in enumerate(repeats)
-        E[i,:,:,:] .= read(h5["$ens/$r"],"E_fxa")
-        poly[i,:,:,:] .= read(h5["$ens/$r"],"poly_fxa")
-    end
-    return an, S0, E, poly
-end
 function main(h5file)
 
     h5 = h5open(h5file)
@@ -83,7 +43,7 @@ function main(h5file)
 
         # Check if a calulation at fixed-a has been performed for all repeats
         # Otherwise, continue without plotting
-        fixed_a_measured(h5, ens) || continue   
+        is_fixed_a_measured(h5, ens) || continue   
         an, S0, E, poly = read_fixed_data(h5,ens)
         
         # Determine mean and standard deviation of the mean for the 
@@ -173,63 +133,7 @@ function main(h5file)
     return nothing
 end
 
-#h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
-#main(h5file)
-#h5file = "data_assets/su3/all_su3_sorted.hdf5"
-#main(h5file)
-
-# S0 is the same as Ek in David's code
-# an is the same as -a in David's code
-# E  is the sames as S in David's code 
-# TODO: Look at performance eventually
-function logZ_fixed_a(E, S0, an, β)
-    dS = S0[2] - S0[1]
-    # Determine the largest possible exponent for the first energy interval
-    # (It will only be used to improve numerical stability)
-    # This expression matches David's code
-    lenE = length(E[1,:,:])
-    log_ρ = LLRParsing.log_rho(S0[1], S0, dS, an)
-    VEV_exp_0 = @. ( -an[1] + β) * E[1,:,:] + an[1]*S0[1] + log_ρ - log(lenE) + log(dS)
-    vmax = maximum(VEV_exp_0)
-    # Now add ap all contributions from every energy interval
-    Z = zeros(length(S0))
-    for i in eachindex(S0)
-        log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
-        VEV_exp = @. (-an[i] + β) * E[i,:,:] + an[i]*S0[i] + log_ρ - log(lenE) + log(dS) - vmax
-        Z[i] = sum(exp,VEV_exp)
-    end
-    logZ = vmax + log(sum(Z))
-    # everything matches up to here
-    return logZ
-end
-function polyakov_loop_power(E, S0, an, β, poly; f=identity)
-    dS = S0[2] - S0[1]
-    obs = zeros(length(S0))
-    log_Z = logZ_fixed_a(E, S0, an, β)
-    
-    for i in eachindex(S0)
-        log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
-        VEV_exp = @. (β * E[i,:,:]) - an[i]*(E[i,:,:] - S0[i]) + log_ρ - log_Z
-        obs[i] = mean(dS .* f.(poly[i,:,:]) .* exp.(VEV_exp))
-    end
-    res = sum(obs)
-    return res
-end
-
+h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
+main(h5file)
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
-
-h5 = h5open(h5file)
-ensembles = filter(!isequal("provenance"),keys(h5))
-ens = "4x20_8replicas"
-an_fxa, S0, E_fxa, poly_fxa = read_fixed_data(h5,ens)
-
-β = 5.68
-repeat_id = 1
-E = E_fxa[repeat_id,:,:,:]
-an = an_fxa[:,repeat_id]
-poly = poly_fxa[repeat_id,:,:,:]
-logZ_fixed_a(E, S0, an, β)
-P1 = polyakov_loop_power(E, S0, an, β, poly; f=x->abs(x)^1)
-P2 = polyakov_loop_power(E, S0, an, β, poly; f=x->abs(x)^2)
-P4 = polyakov_loop_power(E, S0, an, β, poly; f=x->abs(x)^4)
-@show P1, P2, P4
+main(h5file)
