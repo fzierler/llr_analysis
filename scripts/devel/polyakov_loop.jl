@@ -123,7 +123,8 @@ function main(h5file)
             # set up points for plotting 
             points_cplx = StructArray{Point2f}((vec(poly_re[:,rep_ind,:,:]), vec(poly_im[:,rep_ind,:,:])))
 
-            fig = Figure(size = (400*2, 3*250))
+            pt = 4/3 # conversion factor from px to pt
+            fig = Figure(size = (600*2, 3*375),fontsize = 16pt)
             title = L"%$Nt\times%$(Ns)^3,~N_{\mathrm{rep}}=%$Nint"
             xlabel = L"u_p"
             set_theme!(theme_latexfonts())
@@ -134,8 +135,8 @@ function main(h5file)
                 ax0B = Axis(fig[1, 2]; title, xlabel = poly_label, limits = (poly_re_extr, poly_im_extr))
                 ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label, limits = (extrema(up), nothing))
                 ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-                datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=3)
-                datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], binsize=3)
+                datashader!(ax1,points3D,agg = Makie.AggMean(), operation = identity, binsize=2)
+                datashader!(ax0B,points_cplx,colormap=[:transparent, :grey, :black], binsize=2)
                 hist!(ax0,vec(poly_im[:,rep_ind,:,:]), normalization = :pdf, bins = n_bins)
                 hist!(ax3,vec(poly_im),direction=:x, bins = n_bins)
             else
@@ -143,7 +144,7 @@ function main(h5file)
                 ax0 = Axis(fig[1, 1]; title, xlabel = poly_label, limits = (poly_re_extr, nothing))
                 ax1 = Axis(fig[2, 1]; title, xlabel, ylabel = poly_label, limits = (extrema(up), nothing))
                 ax3 = Axis(fig[2, 2]; title, ylabel = poly_label)
-                datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=3)
+                datashader!(ax1,points_re,colormap=[:transparent, :grey, :black], binsize=2)
                 hist!(ax0,vec(poly_re[:,rep_ind,:,:]), normalization = :pdf, bins = n_bins)
                 hist!(ax3,vec(poly_re),direction=:x, bins = n_bins)
             end
