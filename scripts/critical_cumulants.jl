@@ -64,33 +64,6 @@ function beta_extremal(β, obs; f = findmax)
     βmax, Δβmax = mean_std_of_mean(βmax0)
     return βmax, Δβmax
 end
-function critical_beta_cumulants(h5dset, r; N, eps, min_iter = 5, max_iter = 20, w = 20)
-    a = first(LLRParsing._set_up_histogram(h5dset, r))
-    min_a, max_a = minimum(a), maximum(a)
-    β = range(start = min_a, stop = max_a, length = N)
-
-    βc_CV_old, βc_BC_old = +Inf, +Inf
-    βc_CV, Δβc_CV = +Inf, +Inf
-    βc_BC, Δβc_BC = +Inf, +Inf
-    for i in 1:max_iter
-        β, CV0, BC0 = cumulants(h5dset, r, β)
-
-        βc_CV, Δβc_CV = beta_extremal(β, CV0; f = findmax)
-        βc_BC, Δβc_BC = beta_extremal(β, BC0; f = findmin)
-        βmin, βmax = extrema(β)
-        βmin = min(βmin, βc_CV - w * Δβc_CV, βc_BC - w * Δβc_BC)
-        βmax = max(βmin, βc_CV + w * Δβc_CV, βc_BC + w * Δβc_BC)
-        βc_avg = (βc_CV + βc_BC) / 2
-        β = range(start = (βmin + βc_avg) / 2, stop = (βmax + βc_avg) / 2, length = N)
-        diff = max(abs(βc_CV_old - βc_CV), abs(βc_BC_old - βc_BC))
-        βc_CV_old = βc_CV
-        βc_BC_old = βc_BC
-        if diff < eps && i > min_iter
-            return βc_CV, Δβc_CV, βc_BC, Δβc_BC
-        end
-    end
-    return βc_CV, Δβc_CV, βc_BC, Δβc_BC
-end
 function critical_beta_binder_cumulant(h5dset, r; N, eps, min_iter = 5, max_iter = 20, w = 20)
     a = first(LLRParsing._set_up_histogram(h5dset, r))
     min_a, max_a = minimum(a), maximum(a)
