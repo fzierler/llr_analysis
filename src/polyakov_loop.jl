@@ -61,15 +61,17 @@ function logZ_fixed_a(E, S0, an, β)
     # everything matches up to here
     return logZ
 end
-function polyakov_loop_fixed_a(E, S0, an, β, poly; f=identity)
+function polyakov_loop_fixed_a(E, S0, an, β, poly; f=abs)
     dS = S0[2] - S0[1]
     obs = zeros(length(S0))
     log_Z = logZ_fixed_a(E, S0, an, β)
+    tmp = similar(E[1,:,:])
 
     for i in eachindex(S0)
         log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
-        VEV_exp = @. (β * E[i,:,:]) - an[i]*(E[i,:,:] - S0[i]) + log_ρ - log_Z
-        obs[i] = mean(dS .* f.(poly[i,:,:]) .* exp.(VEV_exp))
+        @. tmp = (β * E[i,:,:]) - an[i]*(E[i,:,:] - S0[i]) + log_ρ - log_Z
+        @. tmp = dS * f(poly[i,:,:]) * exp(tmp)
+        obs[i] = mean(tmp)
     end
     res = sum(obs)
     return res

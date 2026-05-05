@@ -3,6 +3,9 @@ Pkg.activate(".")
 Pkg.instantiate()
 using LLRParsing
 using HDF5
+using BenchmarkTools
+using Profile
+Profile.init(delay=0.0001)
 
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
 
@@ -16,8 +19,14 @@ repeat_id = 1
 E = E_fxa[repeat_id,:,:,:]
 an = an_fxa[:,repeat_id]
 poly = poly_fxa[repeat_id,:,:,:]
-logZ_fixed_a(E, S0, an, β)
-P1 = polyakov_loop_fixed_a(E, S0, an, β, poly; f=x->abs(x)^1)
-P2 = polyakov_loop_fixed_a(E, S0, an, β, poly; f=x->abs(x)^2)
-P4 = polyakov_loop_fixed_a(E, S0, an, β, poly; f=x->abs(x)^4)
-@show P1, P2, P4
+
+P1 = polyakov_loop_fixed_a(E, S0, an, β, poly)
+@profview polyakov_loop_fixed_a(E, S0, an, β, poly)
+@btime polyakov_loop_fixed_a(E, S0, an, β, poly)
+P1
+
+#P1 = polyakov_loop_fixed_a(E, S0, an, β, poly; f=x->abs(x)^1)
+#P2 = polyakov_loop_fixed_a(E, S0, an, β, poly; f=x->abs(x)^2)
+#P4 = polyakov_loop_fixed_a(E, S0, an, β, poly; f=x->abs(x)^4)
+#@show P1, P2, P4
+
