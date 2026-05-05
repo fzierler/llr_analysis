@@ -11,15 +11,6 @@ using ProgressMeter
 using Makie.StructArrays
 using Statistics
 
-# S0 is the same as Ek in David's code
-# an is the same as -a in David's code
-# Still need to obtain 'S' from Davids code
-function logZ_fxa(S_fxa, S0, an, β)
-    dS = S0[2] - S0[1]
-    logρ = LLRParsing.log_rho(S0[1], S0, dS, an)
-    # figure out sorting of S0_fxa
-    return VEV_exp = @. (-an[1] + β) * S_fxa[1] # +an[1]*S0[1] + logρ - log(length(S0_fxa[1])) + log(dS)
-end
 # For highlighting the individual energy ranges, we want to take into account 
 # that the first and last interval only have a one-sided constraint
 function highlight_range!(ax,xs,ind,xmin,xmax)
@@ -38,7 +29,46 @@ function stdmean(X;dims=1,bin=1)
     s = dropdims(std(X;dims);dims)/sqrt(N/bin)
     return m, s
 end
+function fixed_a_measured(h5, ens)
+    repeats = read(h5[ens],"repeats")
+    # Read all central energies and coefficients a_n
+    # If no fixed a-calculation was done, then an empty array will be returned 
+    S0 = [ read(h5["$ens/$r"],"S0_fxa") for r in repeats]
+    an = [ read(h5["$ens/$r"],"an_fxa") for r in repeats]
+    # detrmines if we have done the measurement everywhere
+    if any(isempty,S0) || any(isempty,an) 
+        return false
+    end
+    return true
+end
 
+function read_fixed_data(h5,ens)
+    repeats = read(h5[ens],"repeats")
+    Nrep = read(h5[ens],"N_repeats")
+    Nint = read(h5[ens],"N_replicas")
+    # If we proceed with the plot then we have performed the measurements 
+    # everywhere. Thus all entries of  S0 are idential and we can pick
+    # one representative.
+    # For the an's we have different values for every repeat and we rehape
+    # the data into an array of size (N_intervals,N_repeats)
+    S0 = [ read(h5["$ens/$r"],"S0_fxa") for r in repeats]
+    an = [ read(h5["$ens/$r"],"an_fxa") for r in repeats]
+    S0 = first(S0)
+    an = hcat(an...)
+
+    # Obtain number of measurements and swaps for fixed-a calculation
+    s = size(h5["$ens/$(first(repeats))/E_fxa"])
+    nfxa_meas, nfxa_swap = s[2:3]
+
+    # Only these two arrays contain data that changes across repeats
+    E = zeros(Nrep,Nint,nfxa_meas,nfxa_swap)
+    poly = zeros(ComplexF64,(Nrep,Nint,nfxa_meas,nfxa_swap))
+    for (i,r) in enumerate(repeats)
+        E[i,:,:,:] .= read(h5["$ens/$r"],"E_fxa")
+        poly[i,:,:,:] .= read(h5["$ens/$r"],"poly_fxa")
+    end
+    return an, S0, E, poly
+end
 function main(h5file)
 
     h5 = h5open(h5file)
@@ -49,42 +79,16 @@ function main(h5file)
         Nt = read(h5[ens],"Nt")
         Ns = read(h5[ens],"Ns")
         Nint = read(h5[ens],"N_replicas")
-        Nrep = read(h5[ens],"N_repeats")
-        repeats = read(h5[ens],"repeats")
         group = read(h5[ens],"group")
 
-        # Read all central energies and coefficients a_n
-        # If no fixed a-calculation was done, then an empty array will be returned 
-        S0 = [ read(h5["$ens/$r"],"S0_fxa") for r in repeats]
-        an = [ read(h5["$ens/$r"],"an_fxa") for r in repeats]
-        # don't plot anything if there is no data 
-        if any(isempty,S0) || any(isempty,an) 
-            continue
-        end
-
-        # If we proceed with the plot then we have performed the measurements 
-        # everywhere. Thus all entries of  S0 are idential and we can pick
-        # one representative.
-        # For the an's we have different values for every repeat and we rehape
-        # the data into an array of size (N_intervals,N_repeats)
-        S0 = first(S0)
-        an = hcat(an...)
-
+        # Check if a calulation at fixed-a has been performed for all repeats
+        # Otherwise, continue without plotting
+        fixed_a_measured(h5, ens) || continue   
+        an, S0, E, poly = read_fixed_data(h5,ens)
+        
         # Determine mean and standard deviation of the mean for the 
         # fixed values of an
         an_mean, an_std = stdmean(an,dims=2)
-
-        # Obtain number of measurements and swaps for fixed-a calculation
-        s = size(h5["$ens/$(first(repeats))/E_fxa"])
-        nfxa_meas, nfxa_swap = s[2:3]
-
-        # Only these two arrays contain data that changes across repeats
-        E = zeros(Nrep,Nint,nfxa_meas,nfxa_swap)
-        poly = zeros(ComplexF64,(Nrep,Nint,nfxa_meas,nfxa_swap))
-        for (i,r) in enumerate(repeats)
-            E[i,:,:,:] .= read(h5["$ens/$r"],"E_fxa")
-            poly[i,:,:,:] .= read(h5["$ens/$r"],"poly_fxa")
-        end
 
         # for Z2 symmetric theories the polyakov loop is real
         # for ZN symmetric theories the polyakov loop is complex
