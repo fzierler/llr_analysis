@@ -173,7 +173,37 @@ function main(h5file)
     return nothing
 end
 
-h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
-main(h5file)
+#h5file = "data_assets/sp4/all_sp4_sorted.hdf5"
+#main(h5file)
+#h5file = "data_assets/su3/all_su3_sorted.hdf5"
+#main(h5file)
+
+# S0 is the same as Ek in David's code
+# an is the same as -a in David's code
+# E  is the sames as S in David's code 
+function logZ_fxa(E, S0, an, β)
+    dS = S0[2] - S0[1]
+    log_ρ = LLRParsing.log_rho(S0[1], S0, dS, an)
+    # Determine the largest possible exponent for the first energy interval
+    # (It will only be used to improve numerical stability)
+    # This expression matches David's code
+    lenE = length(E[1,:,:])
+    VEV_exp = @. ( -an[1] + β) * E[1,:,:] + an[1]*S0[1] + log_ρ - log(lenE) + log(dS)
+    # everything matches up to here
+    return nothing
+end
+
 h5file = "data_assets/su3/all_su3_sorted.hdf5"
-main(h5file)
+
+h5 = h5open(h5file)
+ensembles = filter(!isequal("provenance"),keys(h5))
+ens = "4x20_8replicas"
+an_fxa, S0, E_fxa, poly_fxa = read_fixed_data(h5,ens)
+
+β = 5.68
+repeat_id = 1
+E = E_fxa[repeat_id,:,:,:]
+an = an_fxa[:,repeat_id]
+poly = poly_fxa[repeat_id,:,:,:]
+
+logZ_fxa(E, S0, an, β)
