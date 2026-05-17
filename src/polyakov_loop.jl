@@ -62,10 +62,11 @@ function logZ_fixed_a(E, S0, an, β)
     return logZ
 end
 function polyakov_loop_fixed_a(E, S0, an, β, poly; f=abs)
+    T = typeof(f(first(poly)))
     dS = S0[2] - S0[1]
-    obs = zeros(length(S0))
+    obs = zeros(T, length(S0))
     log_Z = logZ_fixed_a(E, S0, an, β)
-    tmp = similar(E[1,:,:])
+    tmp = zeros(T, size(poly[1,:,:]))
 
     for i in eachindex(S0)
         log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
