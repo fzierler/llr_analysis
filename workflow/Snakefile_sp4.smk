@@ -37,6 +37,10 @@ rule all_sp4:
             Nt=[5, 5],
             Ns=[48, 56],
         ),
+        polyakov_loop_hist=expand(
+            "assets/sp4/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",
+            dataset=list_datasets(metadata),
+        ),
         binder_cumulant=expand("assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]),
         specific_heat=expand("assets/sp4/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]),
         surface_tension="assets/sp4/plots/surface_tension_term.pdf",
