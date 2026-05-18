@@ -38,3 +38,11 @@ rule all_su3:
         out_ratio_21="data_assets/su3/critical_beta_2:1.csv",
         out_ratio_12="data_assets/su3/critical_beta_1:2.csv",
         supercooling_csv="data_assets/su3/supercooling_param.csv",
+        polyakov_loop_hist=expand(
+            "assets/su3/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",
+            dataset=list_datasets_poly(metadata),
+        ),
+        polyakov_loop_vs_beta=expand(
+            "data_assets/su3/polyakov/polyakov_loop_data_{dataset}.hdf5",
+            dataset=list_datasets_poly(metadata),
+        ),

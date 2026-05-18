@@ -39,11 +39,11 @@ rule all_sp4:
         ),
         polyakov_loop_hist=expand(
             "assets/sp4/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",
-            dataset=list_datasets(metadata),
+            dataset=list_datasets_poly(metadata),
         ),
         polyakov_loop_vs_beta=expand(
             "data_assets/sp4/polyakov/polyakov_loop_data_{dataset}.hdf5",
-            dataset=list_datasets(metadata),
+            dataset= (metadata),
         ),
         binder_cumulant=expand("assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]),
         specific_heat=expand("assets/sp4/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]),

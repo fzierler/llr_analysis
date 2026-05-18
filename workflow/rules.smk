@@ -20,6 +20,23 @@ def list_datasets(metadata):
     ]
 
 
+def list_datasets_poly_Nt(metadata,Nt):
+    return [
+        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
+        for dataset in metadata.itertuples()
+        if dataset.Nt == Nt
+        if dataset.polyakov
+    ]
+
+
+def list_datasets_poly(metadata):
+    return [
+        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
+        for dataset in metadata.itertuples()
+        if dataset.polyakov
+    ]
+
+
 @functools.cache
 def parse_skip(skip):
     if skip == "[]":
