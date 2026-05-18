@@ -6,14 +6,9 @@ using HDF5
 using ArgParse
 using ProgressMeter
 
-function main(h5file,h5file_out;nβs=100)
+function main(h5file,h5file_out,ens;nβs=100)
     h5 = h5open(h5file)
-    runs = keys(h5)
-    runs = filter(!startswith("provenance"), runs)
-    
-    for ens in runs
-
-        is_fixed_a_measured(h5, ens) || continue
+    if is_fixed_a_measured(h5, ens)
         an_fxa, S0, E_fxa, poly_fxa = read_fixed_data(h5,ens)
 
         βs = range(extrema(an_fxa)...,length=nβs)
@@ -40,19 +35,29 @@ function main(h5file,h5file_out;nβs=100)
         lp_abs, Δlp_abs = apply_jackknife(P1_resample,dims=2)
         lp_abs2, Δlp_abs2 = apply_jackknife(P2_resample,dims=2)
         lp_abs4, Δlp_abs4 = apply_jackknife(P4_resample,dims=2)
-        h5write(h5file_out,"$ens/lp",lp)
-        h5write(h5file_out,"$ens/lp_abs",lp_abs)
-        h5write(h5file_out,"$ens/lp_abs2",lp_abs2)
-        h5write(h5file_out,"$ens/lp_abs4",lp_abs4)
-        h5write(h5file_out,"$ens/Δlp",Δlp)
-        h5write(h5file_out,"$ens/Δlp_abs",Δlp_abs)
-        h5write(h5file_out,"$ens/Δlp_abs2",Δlp_abs2)
-        h5write(h5file_out,"$ens/Δlp_abs4",Δlp_abs4)
-        h5write(h5file_out,"$ens/lp_samples",P_resample)
-        h5write(h5file_out,"$ens/lp_abs_samples",P1_resample)
-        h5write(h5file_out,"$ens/lp_abs2_samples",P2_resample)
-        h5write(h5file_out,"$ens/lp_abs4_samples",P4_resample)
+    else
+        # if no data exists, then we save an empty file
+        P_resample  = ComplexF64[]
+        P1_resample = Float64[]
+        P2_resample = Float64[]
+        P4_resample = Float64[]
+        lp, Δlp = ComplexF64[], ComplexF64[]
+        lp_abs, Δlp_abs = Float64[], Float64[]
+        lp_abs2, Δlp_abs2 = Float64[], Float64[]
+        lp_abs4, Δlp_abs4 = Float64[], Float64[]
     end
+    h5write(h5file_out,"$ens/lp",lp)
+    h5write(h5file_out,"$ens/lp_abs",lp_abs)
+    h5write(h5file_out,"$ens/lp_abs2",lp_abs2)
+    h5write(h5file_out,"$ens/lp_abs4",lp_abs4)
+    h5write(h5file_out,"$ens/Δlp",Δlp)
+    h5write(h5file_out,"$ens/Δlp_abs",Δlp_abs)
+    h5write(h5file_out,"$ens/Δlp_abs2",Δlp_abs2)
+    h5write(h5file_out,"$ens/Δlp_abs4",Δlp_abs4)
+    h5write(h5file_out,"$ens/lp_samples",P_resample)
+    h5write(h5file_out,"$ens/lp_abs_samples",P1_resample)
+    h5write(h5file_out,"$ens/lp_abs2_samples",P2_resample)
+    h5write(h5file_out,"$ens/lp_abs4_samples",P4_resample)
 end
 function parse_commandline()
     s = ArgParseSettings()
@@ -63,6 +68,9 @@ function parse_commandline()
         "--h5file_out"
         help = "HDF5 file containing the polyakov loop results"
         required = true
+        "--dataset"
+        help = "Dataset for which the calculation will be performed"
+        required = true
     end
     return parse_args(s)
 end
@@ -71,6 +79,7 @@ function main()
     args = parse_commandline()
     h5file_in = args["h5file_in"]
     h5file_out = args["h5file_out"]
-    main(h5file_in,h5file_out)
+    ens = args["dataset"]
+    main(h5file_in,h5file_out,ens)
 end
 main()

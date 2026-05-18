@@ -41,6 +41,10 @@ rule all_sp4:
             "assets/sp4/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",
             dataset=list_datasets(metadata),
         ),
+        polyakov_loop_vs_beta=expand(
+            "data_assets/sp4/polyakov/polyakov_loop_data_{dataset}.hdf5",
+            dataset=list_datasets(metadata),
+        ),
         binder_cumulant=expand("assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]),
         specific_heat=expand("assets/sp4/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]),
         surface_tension="assets/sp4/plots/surface_tension_term.pdf",
@@ -51,5 +55,4 @@ rule all_sp4:
         out_critical12="data_assets/sp4/critical_beta_2:1.csv",
         out_critical21="data_assets/sp4/critical_beta_1:2.csv",
         supercooling_csv="data_assets/sp4/supercooling_param.csv",
-        polyakov_loop_vs_beta="data_assets/sp4/polyakov_loop_data.hdf5",
 

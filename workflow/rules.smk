@@ -325,8 +325,8 @@ rule ployakov_loop_vs_beta:
         script="scripts/polyakov_loop_moments.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        h5file="data_assets/{group}/polyakov_loop_data.hdf5",
+        h5file="data_assets/{group}/polyakov/polyakov_loop_data_{dataset}.hdf5",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'
+        'julia --project="." {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file} --dataset {wildcards.dataset}'
