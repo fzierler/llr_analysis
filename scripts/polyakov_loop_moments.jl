@@ -11,7 +11,7 @@ function main(h5file,h5file_out,ens;nβs=100)
     if ens ∈ keys(h5) && is_fixed_a_measured(h5, ens)
         an_fxa, S0, E_fxa, poly_fxa = read_fixed_data(h5,ens)
 
-        βs = range(extrema(an_fxa)...,length=nβs)
+        βs = collect(range(extrema(an_fxa)...,length=nβs))
         repeats = size(an_fxa,2)
 
         P_resample  = zeros(eltype(poly_fxa),length(βs),repeats)
