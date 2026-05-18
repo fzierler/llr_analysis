@@ -8,7 +8,7 @@ using ProgressMeter
 
 function main(h5file,h5file_out,ens;nβs=100)
     h5 = h5open(h5file)
-    if is_fixed_a_measured(h5, ens)
+    if ens ∈ keys(h5) && is_fixed_a_measured(h5, ens)
         an_fxa, S0, E_fxa, poly_fxa = read_fixed_data(h5,ens)
 
         βs = range(extrema(an_fxa)...,length=nβs)
@@ -37,6 +37,7 @@ function main(h5file,h5file_out,ens;nβs=100)
         lp_abs4, Δlp_abs4 = apply_jackknife(P4_resample,dims=2)
     else
         # if no data exists, then we save an empty file
+        βs = Float64[]
         P_resample  = ComplexF64[]
         P1_resample = Float64[]
         P2_resample = Float64[]
@@ -46,6 +47,7 @@ function main(h5file,h5file_out,ens;nβs=100)
         lp_abs2, Δlp_abs2 = Float64[], Float64[]
         lp_abs4, Δlp_abs4 = Float64[], Float64[]
     end
+    h5write(h5file_out,"$ens/beta",βs)
     h5write(h5file_out,"$ens/lp",lp)
     h5write(h5file_out,"$ens/lp_abs",lp_abs)
     h5write(h5file_out,"$ens/lp_abs2",lp_abs2)
