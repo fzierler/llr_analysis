@@ -30,8 +30,6 @@ function stdmean(X;dims=1,bin=1)
     return m, s
 end
 function main(h5file, ens, plot_name)
-    plotpath = basename(plot_name) 
-    ispath(plotpath) || mkpath(plotpath)
     h5 = h5open(h5file)
 
     # lattice volume

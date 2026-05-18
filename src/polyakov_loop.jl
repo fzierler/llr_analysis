@@ -73,8 +73,8 @@ function polyakov_loop_fixed_a!(E, S0, an, β, poly, obs, tmp; f)
 
     for i in eachindex(S0)
         log_ρ = LLRParsing.log_rho(S0[i], S0, dS, an)
-        @. tmp = (β * E[i,:,:]) - an[i]*(E[i,:,:] - S0[i]) + log_ρ - log_Z
-        @. tmp = dS * f(poly[i,:,:]) * exp(tmp)
+        @. @views tmp = (β * E[i,:,:]) - an[i]*(E[i,:,:] - S0[i]) + log_ρ - log_Z
+        @. @views tmp = dS * f(poly[i,:,:]) * exp(tmp)
         obs[i] = mean(tmp)
     end
     res = sum(obs)
