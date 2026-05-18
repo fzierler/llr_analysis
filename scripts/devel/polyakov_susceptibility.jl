@@ -1,6 +1,7 @@
 using Pkg
 Pkg.activate(".")
 using LLRParsing
+using LaTeXStrings
 using HDF5
 using Plots
 using ArgParse
@@ -10,7 +11,7 @@ gr(
     fontfamily = "Computer Modern",
     legend = :topright,
     frame = :box,
-    titlefontsize = 10,
+    titlefontsize = 9,
     legendfontsize = 7,
     tickfontsize = 7,
     labelfontsize = 10,
@@ -26,6 +27,7 @@ m = match(rx, ens)
 Nt, Ns, Nrep = parse(Int,m["Nt"]), parse(Int,m["Ns"]), parse(Int,m["Nrep"])
 V = Nt*Ns^3
 
+β = read(h5id[ens],"beta")
 lp_abs  = read(h5id[ens],"lp_abs_samples")
 lp_abs2 = read(h5id[ens],"lp_abs2_samples")
 
@@ -33,4 +35,5 @@ lp_abs2 = read(h5id[ens],"lp_abs2_samples")
 χlp  = dropdims(mean(χlp_samples,dims=2),dims=2)
 Δχlp = dropdims(std(χlp_samples,dims=2) ./ sqrt(size(χlp_samples,2)),dims=2)
 
-plot(χlp, ribbon = Δχlp, label = LLRParsing.fancy_title(ens))
+plt = plot(title="Polyakov loop susceptibility",xlabel=L"\beta",ylabel=L"\chi_{|l_p|}/V")
+plot!(plt, β, χlp, ribbon = Δχlp, label = LLRParsing.fancy_title(ens))
