@@ -42,7 +42,4 @@ rule all_su3:
             "assets/su3/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",
             dataset=list_datasets_poly(metadata),
         ),
-        polyakov_loop_vs_beta=expand(
-            "data_assets/su3/polyakov/polyakov_loop_data_{dataset}.hdf5",
-            dataset=list_datasets_poly(metadata),
-        ),
+        polyakov_loop_vs_beta="data_assets/su3/polyakov/polyakov_loop_data.hdf5",

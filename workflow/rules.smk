@@ -342,8 +342,23 @@ rule ployakov_loop_vs_beta:
         script="scripts/polyakov_loop_moments.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        h5file="data_assets/{group}/polyakov/polyakov_loop_data_{dataset}.hdf5",
+        h5file="data_assets/{group}/polyakov/polyakov_loop_data.hdf5",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file} --dataset {wildcards.dataset}'
+        'julia --project="." {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'
+
+
+
+#rule ployakov_loop_susceptibility:
+#    input:
+#        script="scripts/polyakov_susceptibility.jl",
+#        julia_instantiated="tmp/julia_ready",
+#        h5files="data_assets/{group}/polyakov/polyakov_loop_data_{Nt}x{data}.hdf5"
+#    output:
+#        plot="assets/{group}/plots/polyakov_susceptibility_{Nt}.pdf",
+#    conda:
+#        "envs/environment.yml"
+#    shell:
+#        'julia --project="." {input.script} --plotfile {output.plot} {input.h5files}'
+

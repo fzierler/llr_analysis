@@ -6,9 +6,9 @@ using HDF5
 using ArgParse
 using ProgressMeter
 
-function main(h5file,h5file_out,ens;nβs=100)
+function main(h5file,h5file_out;nβs=100)
     h5 = h5open(h5file)
-    if ens ∈ keys(h5) && is_fixed_a_measured(h5, ens)
+    if is_fixed_a_measured(h5, ens)
         an_fxa, S0, E_fxa, poly_fxa = read_fixed_data(h5,ens)
 
         βs = collect(range(extrema(an_fxa)...,length=nβs))
@@ -70,9 +70,6 @@ function parse_commandline()
         "--h5file_out"
         help = "HDF5 file containing the polyakov loop results"
         required = true
-        "--dataset"
-        help = "Dataset for which the calculation will be performed"
-        required = true
     end
     return parse_args(s)
 end
@@ -81,7 +78,6 @@ function main()
     args = parse_commandline()
     h5file_in = args["h5file_in"]
     h5file_out = args["h5file_out"]
-    ens = args["dataset"]
-    main(h5file_in,h5file_out,ens)
+    main(h5file_in,h5file_out)
 end
 main()
