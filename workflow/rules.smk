@@ -349,6 +349,19 @@ rule ployakov_loop_vs_beta:
         'julia --project="." {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'
 
 
+rule energy_histogram:
+    input:
+        h5file="tmp/{group}/{group}.hdf5",
+        script="scripts/energy_histogram.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot_traj="assets/{group}/plots/energies/energy_trajectory_{dataset}.pdf",
+        plot_hist="assets/{group}/plots/energies/energy_histogram_{dataset}.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --file {input.h5file} --name {wildcards.dataset} --plot_dir assets/{wildcards.group}/plots/energies/'
+
 
 #rule ployakov_loop_susceptibility:
 #    input:

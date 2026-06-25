@@ -1,9 +1,7 @@
-using Pkg
-Pkg.activate(".")
 using LLRParsing
 using HDF5
 using Plots
-using MadrasSokal
+using ArgParse
 gr(
     fontfamily = "Computer Modern",
     legend = :topleft,
@@ -45,7 +43,7 @@ function read_therm_meas(h5id, name)
     return E_therm, E_meas, ΔE, E0
 end
 
-function main(file, name;repeat = 1)
+function main(file, name, dir;repeat = 1)
     h5id = h5open(file)
     E_therm, E_meas, ΔE, E0 = read_therm_meas(h5id, name)
 
@@ -60,11 +58,36 @@ function main(file, name;repeat = 1)
     plt2 = plot(plts..., layout = grid(12, 8), size = (1000, 1500))
     plot!(plt2, plot_title = LLRParsing.fancy_title(name))
 
-    savefig(plt1, "Trajectory.pdf")
-    savefig(plt2, "Histogram.pdf")
+    savefig(plt1, joinpath(dir,"energy_trajectory_$name.pdf"))
+    savefig(plt2, joinpath(dir,"energy_histogram_$name.pdf"))
     return nothing
 end
 
-file = "tmp/su4/su4.hdf5"
-name = "5x32_96replicas"
-main(file,name;repeat = 1)
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table s begin
+        "--file"
+        help = "HDF5 file containing the parsed data"
+        required = true
+        "--name"
+        help = "Run to be analysed"
+        required = true
+        "--plot_dir"
+        help = "directory in which to save the figure"
+        required = true
+        "--repeat"
+        help = "Repeat to be plotted"
+        arg_type = Int
+        default = 1
+    end
+    return parse_args(s)
+end
+function main()
+    args = parse_commandline()
+    file = args["file"]
+    name = args["name"]
+    repeat = args["repeat"]
+    dir = args["plot_dir"]
+    main(file,name,dir;repeat)
+end
+main()
