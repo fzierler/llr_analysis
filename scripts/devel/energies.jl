@@ -45,29 +45,26 @@ function read_therm_meas(h5id, name)
     return E_therm, E_meas, ΔE, E0
 end
 
-function main()
-
-    h5id = h5open("tmp/su4/su4.hdf5")
-    name = "5x32_96replicas"
-
+function main(file, name;repeat = 1)
+    h5id = h5open(file)
     E_therm, E_meas, ΔE, E0 = read_therm_meas(h5id, name)
-    repeat = 1
-    replica = 50
 
-    plts = [ plot(E_meas[:, replica, repeat], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
+    E_full = cat(E_therm,E_meas,dims=1)
+    therms = size(E_therm,1) 
+    
+    plts = [ plot(E_full[:, i, repeat], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
+    plts = [ vspan!(plt, [1, therms], color = :blue, alpha = 0.2, labels = "therm") for plt in plts ]
     plt1 = plot(plts..., layout = grid(12, 8), size = (1000, 1500))
+    
     plts = [ histogram(E_meas[:, i, repeat + 1], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
     plt2 = plot(plts..., layout = grid(12, 8), size = (1000, 1500))
     plot!(plt2, plot_title = LLRParsing.fancy_title(name))
 
-    E_full = cat(E_therm, E_meas, dims = 1)
-    x = 1:size(E_full, 1)
-    plt = MadrasSokal.autocorrelation_overview(x, E_full[:, replica, repeat + 1], "", 1)
-
-    savefig(plt, "MadrasSokal.pdf")
     savefig(plt1, "Trajectory.pdf")
     savefig(plt2, "Histogram.pdf")
     return nothing
 end
 
-main()
+file = "tmp/su4/su4.hdf5"
+name = "5x32_96replicas"
+main(file,name;repeat = 1)
