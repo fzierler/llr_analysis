@@ -2,6 +2,8 @@ using LLRParsing
 using HDF5
 using Plots
 using ArgParse
+using LaTeXStrings
+using PDFmerger
 gr(
     fontfamily = "Computer Modern",
     legend = :topleft,
@@ -40,38 +42,51 @@ end
 
 function main(file, name, dir;repeat = 1)
     h5id = h5open(file)
-
     repeats = read(h5id, "$name/repeats")
     Nrep = read(h5id, "$name/N_replicas")
-    
-    has_therm = all( [ haskey(h5id, "$name/$repeat/Rep_$n/E_therm") for n in 0:Nrep-1])
-    has_meas  = all( [ haskey(h5id, "$name/$repeat/Rep_$n/E_meas")  for n in 0:Nrep-1])
-    
-    if has_therm && has_meas
-        E_therm, E_meas, ΔE, E0 = read_therm_meas(h5id, name, repeat)
 
-        E_full = cat(E_therm,E_meas,dims=1)
-        therms = size(E_therm,1) 
+    plt_repeat_hist = AbstractString[]
+    plt_repeat_traj = AbstractString[]
 
-        nreplicas = size(E_meas, 2)
-        cols = 12
-        rows = cld(nreplicas,cols) 
-        
-        plts = [ plot(E_full[:, i], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
-        plts = [ vspan!(plt, [1, therms], color = :blue, alpha = 0.2, labels = "therm") for plt in plts ]
-        plt1 = plot(plts..., layout = grid(cols, rows), size = (1000, 1500))
-        
-        plts = [ histogram(E_meas[:, i], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
-        plt2 = plot(plts..., layout = grid(cols, rows), size = (1000, 1500))
-        plot!(plt2, plot_title = LLRParsing.fancy_title(name))
+    for repeat in repeats
+                
+        has_therm = all( [ haskey(h5id, "$name/$repeat/Rep_$n/E_therm") for n in 0:Nrep-1])
+        has_meas  = all( [ haskey(h5id, "$name/$repeat/Rep_$n/E_meas")  for n in 0:Nrep-1])        
 
-        savefig(plt1, joinpath(dir,"energy_trajectory_$name.pdf"))
-        savefig(plt2, joinpath(dir,"energy_histogram_$name.pdf"))
-    else
+        if has_therm && has_meas
+            E_therm, E_meas, ΔE, E0 = read_therm_meas(h5id, name, repeat)
+
+            E_full = cat(E_therm,E_meas,dims=1)
+            therms = size(E_therm,1) 
+
+            nreplicas = size(E_meas, 2)
+            cols = 12
+            rows = cld(nreplicas,cols) 
+            
+            plts = [ plot(E_full[:, i], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
+            plts = [ vspan!(plt, [1, therms], color = :blue, alpha = 0.2, labels = "therm") for plt in plts ]
+            plt1 = plot(plts..., layout = grid(cols, rows), size = (1000, 1500))
+            plot!(plt1, plot_title = LLRParsing.fancy_title(name)*L"repeat $=%$repeat$")
+            
+            plts = [ histogram(E_meas[:, i], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
+            plt2 = plot(plts..., layout = grid(cols, rows), size = (1000, 1500))
+            plot!(plt2, plot_title = LLRParsing.fancy_title(name)*L"repeat $=%$repeat$")
+
+            plt_name_1 = tempname()*".pdf"
+            plt_name_2 = tempname()*".pdf"
+            savefig(plt1, plt_name_1)
+            savefig(plt2, plt_name_2)
+            push!(plt_repeat_hist,plt_name_1)
+            push!(plt_repeat_traj,plt_name_2)
+        end
+    end
+    if isempty(plt_repeat_hist) || isempty(plt_repeat_traj)
         savefig(plot(), joinpath(dir,"energy_trajectory_$name.pdf"))
         savefig(plot(), joinpath(dir,"energy_histogram_$name.pdf"))
+    else
+        merge_pdfs(plt_repeat_hist, joinpath(dir,"energy_trajectory_$name.pdf"), cleanup=true)
+        merge_pdfs(plt_repeat_traj, joinpath(dir,"energy_histogram_$name.pdf"), cleanup=true)
     end
-    return nothing
 end
 
 function parse_commandline()
