@@ -40,7 +40,7 @@ function read_therm_meas(h5id, name,repeat)
     return E_therm, E_meas, ΔE, E0
 end
 
-function main(file, name, dir;repeat = 1)
+function main(file, name, dir; repeat = 1, extra_therm = 0 )
     h5id = h5open(file)
     repeats = read(h5id, "$name/repeats")
     Nrep = read(h5id, "$name/N_replicas")
@@ -68,7 +68,7 @@ function main(file, name, dir;repeat = 1)
             plt1 = plot(plts..., layout = grid(cols, rows), size = (1000, 1500))
             plot!(plt1, plot_title = LLRParsing.fancy_title(name)*L"repeat $=%$repeat$")
             
-            plts = [ histogram(E_meas[:, i], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
+            plts = [ histogram(E_meas[1+extra_therm:end, i], ticks = :none, label = "", title = "replica #$i") for i in axes(E_meas, 2) ]
             plt2 = plot(plts..., layout = grid(cols, rows), size = (1000, 1500))
             plot!(plt2, plot_title = LLRParsing.fancy_title(name)*L"repeat $=%$repeat$")
 
@@ -105,6 +105,10 @@ function parse_commandline()
         help = "Repeat to be plotted"
         arg_type = Int
         default = 1
+        "--extra_therm"
+        help = "Obtain histograms with extra thermalisation"
+        arg_type = Int
+        default = 0
     end
     return parse_args(s)
 end
@@ -114,6 +118,7 @@ function main()
     name = args["name"]
     repeat = args["repeat"]
     dir = args["plot_dir"]
-    main(file,name,dir;repeat)
+    extra_therm = args["extra_therm"]
+    main(file,name,dir;repeat,extra_therm)
 end
 main()

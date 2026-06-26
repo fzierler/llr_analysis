@@ -363,6 +363,20 @@ rule energy_histogram:
         'julia --project="." {input.script} --file {input.h5file} --name {wildcards.dataset} --plot_dir assets/{wildcards.group}/plots/energies/'
 
 
+rule energy_histogram_therm:
+    input:
+        h5file="tmp/{group}/{group}.hdf5",
+        script="scripts/energy_histogram.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot_traj="assets/{group}/plots/energies_extra_therm/energy_trajectory_{dataset}.pdf",
+        plot_hist="assets/{group}/plots/energies_extra_therm/energy_histogram_{dataset}.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --file {input.h5file} --extra_therm 300 --name {wildcards.dataset} --plot_dir assets/{wildcards.group}/plots/energies_extra_therm/'
+
+
 #rule ployakov_loop_susceptibility:
 #    input:
 #        script="scripts/polyakov_susceptibility.jl",

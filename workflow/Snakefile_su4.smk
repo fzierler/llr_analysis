@@ -47,8 +47,9 @@ rule all_su4:
             "assets/su4/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf", zip, Nt=[5], Ns=[28]
         ),
         plot_traj_hist=expand(
-            "assets/su4/plots/energies/energy_{plot}_{dataset}.pdf",
+            "assets/su4/plots/{name}/energy_{plot}_{dataset}.pdf",
             dataset=list_datasets(metadata),
             plot=("trajectory","histogram"),
+            name=("energies","energies_extra_therm")
         ),
 
