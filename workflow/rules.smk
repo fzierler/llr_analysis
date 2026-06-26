@@ -345,8 +345,11 @@ rule ployakov_loop_vs_beta:
         h5file="data_assets/{group}/polyakov/polyakov_loop_data.hdf5",
     conda:
         "envs/environment.yml"
+    # use threads and increase priority since this is one of the longer running rules
+    threads: 8
+    priority: 10
     shell:
-        'julia --project="." {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'
+        'julia --project="." --threads {threads} {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'
 
 
 rule energy_histogram:

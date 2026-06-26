@@ -32,7 +32,7 @@ function main(h5file,h5file_out;nβs=100)
             P2 = zeros(length(βs),repeats)
             P4 = zeros(length(βs),repeats)
 
-            @showprogress "polyakov loop: $ens" for i in eachindex(βs)
+            @showprogress Threads.@threads for i in eachindex(βs)
                 for repeat_id in 1:repeats
                     E = E_fxa[repeat_id,:,:,:]
                     an = an_fxa[:,repeat_id]
