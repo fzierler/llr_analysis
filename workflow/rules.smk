@@ -377,15 +377,15 @@ rule energy_histogram_therm:
         'julia --project="." {input.script} --file {input.h5file} --extra_therm 300 --name {wildcards.dataset} --plot_dir assets/{wildcards.group}/plots/energies_extra_therm/'
 
 
-#rule ployakov_loop_susceptibility:
-#    input:
-#        script="scripts/polyakov_susceptibility.jl",
-#        julia_instantiated="tmp/julia_ready",
-#        h5files="data_assets/{group}/polyakov/polyakov_loop_data_{Nt}x{data}.hdf5"
-#    output:
-#        plot="assets/{group}/plots/polyakov_susceptibility_{Nt}.pdf",
-#    conda:
-#        "envs/environment.yml"
-#    shell:
-#        'julia --project="." {input.script} --plotfile {output.plot} {input.h5files}'
+rule ployakov_loop_susceptibility:
+    input:
+        script="scripts/polyakov_susceptibility.jl",
+        julia_instantiated="tmp/julia_ready",
+        h5file="data_assets/{group}/polyakov/polyakov_loop_data.hdf5"
+    output:
+        plot="assets/{group}/plots/polyakov_susceptibility_Nt{Nt}.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --plotfile {output.plot} --h5file {input.h5file} --Nt {wildcards.Nt}'
 
