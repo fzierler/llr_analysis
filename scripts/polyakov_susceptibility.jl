@@ -42,7 +42,7 @@ function plot_polyakov_loop(h5file,plot_name,Nt_plot)
                 χlp_samples = @. (lp_abs2 - lp_abs^2)/Nt
                 χlp  = dropdims(mean(χlp_samples,dims=2),dims=2)
                 Δχlp = dropdims(std(χlp_samples,dims=2) ./ sqrt(size(χlp_samples,2)),dims=2)
-                plot!(plt, β, χlp, xlims=(7.337,7.343), ribbon = Δχlp, lw= 2, label = LLRParsing.fancy_title(ens))
+                plot!(plt, β, χlp, ribbon = Δχlp, lw= 2, label = LLRParsing.fancy_title(ens))
             end
         end
     end

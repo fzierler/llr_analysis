@@ -61,7 +61,7 @@ function logZ_fixed_a(E, S0, an, β)
     # everything matches up to here
     return logZ
 end
-function polyakov_loop_fixed_a(E, S0, an, β, poly; f=abs)
+function polyakov_loop_fixed_a(E, S0, an, β, poly; f)
     T = typeof(f(first(poly)))
     obs = zeros(T, length(S0))
     tmp = zeros(T, size(poly[1,:,:]))

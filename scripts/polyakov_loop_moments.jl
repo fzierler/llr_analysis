@@ -14,7 +14,7 @@ function stdmean(X;dims,bin=1)
     return m, s
 end
 
-function main(h5file,h5file_out;nβs=100)
+function main(h5file,h5file_out;nβs=500)
     h5 = h5open(h5file)
     
     runs = keys(h5)
