@@ -336,6 +336,19 @@ rule ployakov_loop_overview:
         'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
 
 
+rule ployakov_loop_overview_compact:
+    input:
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
+        script="scripts/polyakov_loop_compact.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="assets/{group}/plots/polyakov_loop_compact/polyakov_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+
+
 rule ployakov_loop_vs_beta:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",

@@ -41,6 +41,10 @@ rule all_sp4:
             "assets/sp4/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",
             dataset=list_datasets_poly(metadata),
         ),
+        polyakov_loop_compact=expand(
+            "assets/sp4/plots/polyakov_loop_compact/polyakov_{dataset}.pdf",
+            dataset=list_datasets_poly(metadata),
+        ),
         polyakov_loop_vs_beta="data_assets/sp4/polyakov/polyakov_loop_data.hdf5",
         polyakov_loop_susceptibility=expand("assets/sp4/plots/polyakov_susceptibility_Nt{Nt}.pdf", Nt=[4, 5]),
         binder_cumulant=expand("assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]),
