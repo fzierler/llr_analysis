@@ -179,8 +179,8 @@ function parse_llr(file)
     end
     close(io)
     # assert that we always have used a consistent number of thermalisation and measurements
-    llr_therm = only(unique(llr_therm))
-    llr_meas = only(unique(llr_meas))
+    # llr_therm = only(unique(llr_therm))
+    # llr_meas  = only(unique(llr_meas))
     # end function and returned parsed information
     return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas, E_therm, E_meas, E_fxa
 end
@@ -236,10 +236,10 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
             write(fid, joinpath(name, repeat, rep, "llr_therm"), llr_therm)
             write(fid, joinpath(name, repeat, rep, "llr_meas"), llr_meas)
             if length(E_meas) > 0 && length(E_therm) > 0
-                E_therm = reduce(hcat, E_therm)
-                E_meas = reduce(hcat, E_meas)
-                write(fid, joinpath(name, repeat, rep, "E_therm"), E_therm)
-                write(fid, joinpath(name, repeat, rep, "E_meas"), E_meas)
+                for step in eachindex(E_meas)
+                    write(fid, joinpath(name, repeat, rep, "E_therm", "$step"), E_therm[step])
+                    write(fid, joinpath(name, repeat, rep, "E_meas", "$step"), E_meas[step])
+                end
             end
         end
     end

@@ -17,8 +17,8 @@ gr(
 )
 function read_therm_meas(h5id, name,repeat)
     N_replicas = read(h5id, "$name/N_replicas")
-    llr_therm = read(h5id, "$name/$repeat/Rep_0/llr_therm")
-    llr_meas = read(h5id, "$name/$repeat/Rep_0/llr_meas")
+    llr_therm = read(h5id, "$name/$repeat/Rep_0/llr_therm")[end]
+    llr_meas = read(h5id, "$name/$repeat/Rep_0/llr_meas")[end]
     ΔE = read(h5id, "$name/$repeat/Rep_0/dS0")
     E0 = read(h5id, "$name/$repeat/Rep_0/S0")
 
@@ -27,8 +27,10 @@ function read_therm_meas(h5id, name,repeat)
     E0 = zeros(N_replicas)
 
     for n in 0:(N_replicas - 1)
-        E_meas[:, n + 1] = read(h5id, "$name/$repeat/Rep_$n/E_meas")[:, end]
-        E_therm[:, n + 1] = read(h5id, "$name/$repeat/Rep_$n/E_therm")[:, end]
+        steps = parse.(Int,keys(h5id["$name/$repeat/Rep_$n/E_meas"]))
+        i = maximum(steps)
+        E_meas[:, n + 1] = read(h5id, "$name/$repeat/Rep_$n/E_meas/$i")
+        E_therm[:, n + 1] = read(h5id, "$name/$repeat/Rep_$n/E_therm/$i")
         E0[n + 1] = read(h5id, "$name/$repeat/Rep_$n/S0")[end]
     end
 
