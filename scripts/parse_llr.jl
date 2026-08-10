@@ -6,9 +6,9 @@ function parse_skip(str)
     spl = split(chop(str, head = 1), ',')
     return all(isempty, spl) ? String[] : String.(spl)
 end
-function parse_full(dir, skip, h5file, filename)
+function parse_full(dir, skip, h5file, filename; id = 1)
     s = parse_skip.(skip)
-    return llr_dir_hdf5(dir, h5file; filename, skip_repeats = s)
+    return llr_dir_hdf5(dir, h5file; filename, skip_repeats = s, suffix = "_run$id")
 end
 function parse_commandline()
     s = ArgParseSettings()
@@ -41,9 +41,9 @@ function main()
     isfile(h5file) && rm(h5file)
 
     for row in eachrow(metadata)
-        run, s, replicas, repeats, Nt, Ns = row
+        run, s, replicas, repeats, Nt, Ns, poly, id = row
         if iszero(only_Nt) || parse(Int, Nt) == only_Nt
-            parse_full(run, s, h5file, filename)
+            parse_full(run, s, h5file, filename; id)
         end
     end
     write_provenance_hdf5(h5file)

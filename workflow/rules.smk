@@ -7,7 +7,7 @@ os.environ["GKSwstype"] = "100"
 
 def list_datasets_Nt(metadata, Nt):
     return [
-        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
+        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas_run{dataset.id}"
         for dataset in metadata.itertuples()
         if dataset.Nt == Nt
     ]
@@ -15,14 +15,14 @@ def list_datasets_Nt(metadata, Nt):
 
 def list_datasets(metadata):
     return [
-        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
+        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas_run{dataset.id}"
         for dataset in metadata.itertuples()
     ]
 
 
 def list_datasets_poly_Nt(metadata,Nt):
     return [
-        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
+        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas_run{dataset.id}"
         for dataset in metadata.itertuples()
         if dataset.Nt == Nt
         if dataset.polyakov
@@ -31,7 +31,7 @@ def list_datasets_poly_Nt(metadata,Nt):
 
 def list_datasets_poly(metadata):
     return [
-        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas"
+        f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas_run{dataset.id}"
         for dataset in metadata.itertuples()
         if dataset.polyakov
     ]
@@ -100,11 +100,11 @@ rule overview_plots:
         script="scripts/trajectory_overview.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="{loc}/{group}/plots/overview/{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="{loc}/{group}/plots/overview/{Nt}x{Ns}_{Nreplicas}replicas_run{id}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
 
 rule an_trajectory_plots:
@@ -113,11 +113,11 @@ rule an_trajectory_plots:
         script="scripts/an_history.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="{loc}/{group}/plots/an_trajectories/{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="{loc}/{group}/plots/an_trajectories/{Nt}x{Ns}_{Nreplicas}replicas_run{id}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
 
 rule free_energy_plots:
@@ -127,11 +127,11 @@ rule free_energy_plots:
         julia_instantiated="tmp/julia_ready",
         entropy="metadata/critical_entropy_{group}.csv",
     output:
-        plot="assets/{group}/plots/free_energy/free_energy_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="assets/{group}/plots/free_energy/free_energy_{Nt}x{Ns}_{Nreplicas}replicas_run{id}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --critical_entropy {input.entropy} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --critical_entropy {input.entropy} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
 
 rule an_volume_comparison_plots:
@@ -260,11 +260,11 @@ rule double_gaussian_plots_ratios:
         script="scripts/double_gaussian_fit.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/{group}/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_{peak1}:{peak2}.pdf",
+        plot="assets/{group}/plots/plaquette_distribution/pd_{Nt}x{Ns}_{Nreplicas}replicas_run{id}_{peak1}:{peak2}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --peak1 {wildcards.peak1} --peak2 {wildcards.peak2} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --peak1 {wildcards.peak1} --peak2 {wildcards.peak2} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
 
 rule cumulant_plots:
@@ -329,11 +329,11 @@ rule ployakov_loop_overview:
         script="scripts/polyakov_loop_hist.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/{group}/plots/polyakov_loop_hist/polyakov_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="assets/{group}/plots/polyakov_loop_hist/polyakov_{Nt}x{Ns}_{Nreplicas}replicas_run{id}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
 
 rule ployakov_loop_overview_compact:
@@ -342,11 +342,11 @@ rule ployakov_loop_overview_compact:
         script="scripts/polyakov_loop_compact.jl",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/{group}/plots/polyakov_loop_compact/polyakov_{Nt}x{Ns}_{Nreplicas}replicas.pdf",
+        plot="assets/{group}/plots/polyakov_loop_compact/polyakov_{Nt}x{Ns}_{Nreplicas}replicas_run{id}.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas'
+        'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
 
 rule ployakov_loop_vs_beta:
