@@ -63,7 +63,6 @@ function apply_jackknife(obs::AbstractVector)
     return O, ΔO
 end
 function fix_csv_output(arr)
-    println(arr)
     return eval(Meta.parse(replace(arr, '\n' =>"")))
 end
 
@@ -76,7 +75,6 @@ function read_scale_csv(file)
     ß0 = data[1,5]
     Nc = data[1,6]
     Cov = reshape(fix_csv_output(data[1,8]), (length(coeff), length(coeff)))
-    println("Here")
     return ßs, ß0, w0inv, w0inv_err, coeff, Cov, Nc
 end
 
@@ -109,7 +107,6 @@ end
 function latent_heat(up,Δup,Nt,ß,Δß,Nc,C2,ß0,c0,c1,c2,c3,Cov)
     k = karsch_coeff(ß,c0,c1,c2,c3,ß0,Nc,C2)
     Lh = -6 * Nt^4 * up * k
-    println(Lh)
     gradr = grad_ratio(ß,ß0,c0,c1,c2,c3,Nc,C2)
     gradß = grad_ratio_ß(ß,ß0,c0,c1,c2, c3,Nc,C2)
     ΔLh = Lh * sqrt((Δup/up)^2 + ( transpose(gradr) * Cov * gradr )/ k^2 + (Δß * gradß )^2  / k^2)

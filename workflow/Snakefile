@@ -99,6 +99,8 @@ rule all:
             "assets/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]
         ),
         plot_specific_heat=expand("assets/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]),
+        karsch_out="data_assets/Sp4_scale.csv",
+        latent_heat_plot="assets/plots/latent_heat.pdf",
         surface_tension_plot="assets/plots/surface_tension_term.pdf",
         ensembles_combined="assets/tables/runs.tex",
         file_out="assets/tables/beta_critical.tex",
@@ -386,6 +388,31 @@ rule surface_tension_plot:
     shell:
         'julia --project="." {input.script} --plotfile {output.plot} {input.h5file_Nt4} {input.h5file_Nt5}'
 
+rule latent_heat:
+    input:
+        script="scripts/latent_heat.jl",
+        scale_data="data_assets/Sp4_scale.csv",
+        h5file_Nt4="data_assets/Sp4_Nt4_sorted.hdf5",
+        h5file_Nt5="data_assets/Sp4_Nt5_sorted.hdf5",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="assets/plots/latent_heat.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --plotfile {output.plot} --scalefile {input.scale_data} {input.h5file_Nt4} {input.h5file_Nt5}'
+
+rule karsch:
+    input:
+        script="scripts/karsch.jl",
+        scale_data="data_assets/Sp4_w0.dat",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        out="data_assets/Sp4_scale.csv",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --refw0 0.6 --outfile {output.out} --scalefile {input.scale_data}'
 
 rule critical_beta_table:
     input:
