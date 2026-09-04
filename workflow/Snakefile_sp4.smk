@@ -57,4 +57,6 @@ rule all_sp4:
         out_critical12="data_assets/sp4/critical_beta_2:1.csv",
         out_critical21="data_assets/sp4/critical_beta_1:2.csv",
         supercooling_csv="data_assets/sp4/supercooling_param.csv",
+        karsch_out="data_assets/sp4/scale_setting.csv",
+        latent_heat_plot="assets/plots/sp4/latent_heat.pdf",
 

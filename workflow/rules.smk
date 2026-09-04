@@ -405,3 +405,27 @@ rule ployakov_loop_susceptibility:
     shell:
         'julia --project="." {input.script} --plotfile {output.plot} --h5file {input.h5file} --Nt {wildcards.Nt}'
 
+rule latent_heat:
+    input:
+        script="scripts/latent_heat.jl",
+        scale_data="data_assets/{group}/scale_setting.csv",
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="assets/plots/{group}/latent_heat.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --plotfile {output.plot} --scalefile {input.scale_data} {input.h5file}'
+
+rule karsch:
+    input:
+        script="scripts/karsch.jl",
+        scale_data="external_data/{group}_w0.dat",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        out="data_assets/{group}/scale_setting.csv",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --refw0 0.6 --outfile {output.out} --scalefile {input.scale_data}'
