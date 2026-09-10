@@ -4,3 +4,6 @@
 [submodule "libs/HiRepParsing"]
 	path = libs/HiRepParsing
 	url = https://github.com/fzierler/HiRepParsing
+[submodule "libs/sp2n-scalesetting-reduced"]
+	path = libs/sp2n-scalesetting-reduced
+	url = https://github.com/dave452/sp2n-scalesetting-reduced

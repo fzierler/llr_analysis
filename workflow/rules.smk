@@ -277,7 +277,7 @@ rule cumulant_plots:
         plot_specific_heat="assets/{group}/plots/specific_heat_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
-    threads: workflow.cores / 2
+    threads: max(1,workflow.cores // 2)
     shell:
         'julia --threads {threads} --project="." {input.script} --h5file {input.h5file} --plot_file_binder_cumulant {output.plot_binder_cumulant} --plot_file_specific_heat {output.plot_specific_heat} --Nt {wildcards.Nt}'
 
@@ -359,7 +359,7 @@ rule ployakov_loop_vs_beta:
     conda:
         "envs/environment.yml"
     # use threads and increase priority since this is one of the longer running rules
-    threads: 8
+    threads: max(1,workflow.cores // 2)
     priority: 10
     shell:
         'julia --project="." --threads {threads} {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'
@@ -405,6 +405,7 @@ rule ployakov_loop_susceptibility:
     shell:
         'julia --project="." {input.script} --plotfile {output.plot} --h5file {input.h5file} --Nt {wildcards.Nt}'
 
+
 rule latent_heat:
     input:
         script="scripts/latent_heat.jl",
@@ -418,14 +419,70 @@ rule latent_heat:
     shell:
         'julia --project="." {input.script} --plotfile {output.plot} --scalefile {input.scale_data} --h5file {input.h5file}'
 
+
 rule karsch:
     input:
         script="scripts/karsch.jl",
-        scale_data="external_data/{group}_w0.dat",
+        scale_data="data_assets/{group}_w0.dat",
         julia_instantiated="tmp/julia_ready",
     output:
         out="data_assets/{group}/scale_setting.csv",
+        plot="assets/{group}/plots/w0inv_beta.pdf",
+    params:
+        ref_w0=0.75,
+        group="SPN",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --refw0 0.6 --outfile {output.out} --scalefile {input.scale_data}'
+        'julia --project="." {input.script} --refw0 {params.ref_w0} --group {params.group} --pltfile {output.plot} --outfile {output.out} --scalefile {input.scale_data}'
+
+
+rule read_scale_setting_files:
+    input:
+        input_dir="raw_data/{group}/scale_setting/",
+        WF_shell="libs/sp2n-scalesetting-reduced/src/create_WF_files.sh",
+        Bootstrap_script="libs/sp2n-scalesetting-reduced/src/produce_bs_sample.py",
+        Topology_script="libs/sp2n-scalesetting-reduced/src/Topology.py",
+    output:
+        WF_RESULTS="data_assets/{group}/{group}_w0.dat",
+    params:
+        TMP_DIR="tmp/{group}/scale_setting/",
+        num_bs=50,
+        E0=0.6,
+        W0=0.6,
+        group="SPN",
+    conda:
+        "envs/scale_environment.yml"
+    shell:
+        """
+        TMP_DIR={params.TMP_DIR}
+        mkdir -p $TMP_DIR
+        {input.WF_shell} {input.input_dir} $TMP_DIR
+        PICKLE_DIR="$TMP_DIR"/pickle_files/
+        mkdir -p $PICKLE_DIR
+        for f in "$TMP_DIR"/WF*; do
+            python {input.Bootstrap_script} $f --num_bs {params.num_bs} --pickle_dir $PICKLE_DIR
+        done
+        python {input.Topology_script} {params.E0} {params.W0} "$TMP_DIR"/WF* --pickle_dir $PICKLE_DIR --group {params.group} > {output.WF_RESULTS}
+        """
+
+
+rule plot_Wilson_flow:
+    input:
+        visual_script="libs/sp2n-scalesetting-reduced/src/vis_WF_W_E.py",
+        WF_RESULTS="data_assets/{group}/{group}_w0.dat",
+    output:
+        WF_plot="assets/{group}/plots/vis_W_E.pdf"
+    params:
+        TMP_DIR="tmp/{group}/scale_setting/",
+        E0=0.6,
+        W0=0.6,
+        group="SPN",
+    conda:
+        "envs/scale_environment.yml"
+    shell:
+        """
+        TMP_DIR={params.TMP_DIR}
+        PICKLE_DIR="$TMP_DIR"/pickle_files/
+        python {input.visual_script} {params.E0} {params.W0} "$TMP_DIR"/WF* --pickle_dir $PICKLE_DIR --group {params.group} --outfile {output.WF_plot}
+        """

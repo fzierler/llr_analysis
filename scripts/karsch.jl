@@ -64,15 +64,16 @@ function Casmir(group, Nc)
     end
 end
 
-function main(files, refw0, scale_file, out_file)
+function main(files, refw0, group, scale_file, out_file, plt_file)
+    plt = plot(; ylabel = L"1/w_0", xlabel = L"\beta", legend=:bottomleft)
     data = readdlm(scale_file)
-    mask = (data[1:end, 6] .== 0.6)
+    mask = (data[1:end, 8] .== refw0)
     data = data[mask, 1:end]
     Nc = (data[1:end,1])[1]
-    C2 = Casmir("SPN",Nc)
+    C2 = Casmir(group,Nc)
     betas = (data[1:end,2])
-    w0cl = (data[1:end,7])
-    w0cl_err = (data[1:end,8])
+    w0cl = (data[1:end,9])
+    w0cl_err = (data[1:end,10])
     a = 1 ./ w0cl
     a_err = w0cl_err ./ (w0cl .^2)
     ß0 = 7.5;
@@ -91,6 +92,13 @@ function main(files, refw0, scale_file, out_file)
         print(io,join(["[" * join(fit.param, " ") * "]"]),",")
         print(io,join(["[",join([join(row, " ") * " " for row in eachrow(estimate_covar(fit))]),"]"]))
     end
+    dof = length(betas) - length(fit.param)
+    chisqr =  round(sum(fit.resid .^2 ) / dof, digits=3)
+    ß_fit = LinRange(minimum(betas),maximum(betas),20)
+    a_fit = f(ß_fit,fit.param)
+    plot!(plt, betas, a, yerr = a_err, seriestype=:scatter,markershape = MARKERS[1], markeralpha = 0.7, label = L"Data")
+    plot!(plt, ß_fit, a_fit, markershape = MARKERS[2], markeralpha = 0.7, label = join(["Fit", L"\chi^2_\nu =", "$chisqr"]))
+    savefig(plt,  plt_file)
     return 1
 end
 function parse_commandline()
@@ -99,11 +107,17 @@ function parse_commandline()
         "--outfile"
         help = "Where to save the output"
         required = true
+        "--pltfile"
+        help = "Where to save the plot"
+        required = true
         "--scalefile"
         help = "Location of the scale setting file"
         required = true
         "--refw0"
         help = "Refernce Wilson flow coefficient"
+        required = true
+        "--group"
+        help = "Gauge group"
         "arg"
         help = "HDF5 files with sorted data for all Nt to be plotted"
         nargs = '+'
@@ -113,10 +127,12 @@ end
 function main()
     args = parse_commandline()
     outfile = args["outfile"]
+    pltfile = args["pltfile"]
     scalefile = args["scalefile"]
-    refw0 = args["refw0"]
+    group = args["group"]
+    refw0 = parse(Float64,args["refw0"])
     files = args["arg"]
-    main(files, refw0, scalefile, outfile)
+    main(files, refw0, group, scalefile, outfile, pltfile)
     return nothing
 end
 main()

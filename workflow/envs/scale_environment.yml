@@ -1,0 +1,35 @@
+name: sp2n-topology
+channels:
+  - conda-forge
+dependencies:
+  - bzip2=1.0.8
+  - libcxx=12.0.0
+  - hdf5==1.12.0
+  - libffi=3.3
+  - make=4.3
+  - ncurses=6.3
+  - openssl=1.1.1o
+  - pip=21.2.4
+  - python=3.9.7
+  - readline=8.1.2 
+  - setuptools=61.2.0
+  - sqlite=3.38.3
+  - tk=8.6.11
+  - tzdata=2022a
+  - wheel=0.37.1
+  - xz=5.2.5
+  - zlib=1.2.12
+  - pip:
+    - cycler==0.11.0
+    - fonttools==4.33.3
+    - future==0.18.2
+    - kiwisolver==1.4.2
+    - matplotlib==3.5.2
+    - numpy==1.22.3
+    - packaging==21.3
+    - pillow==9.1.1
+    - pyparsing==3.0.9
+    - python-dateutil==2.8.2
+    - scipy==1.8.1
+    - six==1.16.0
+    - uncertainties==3.1.6
