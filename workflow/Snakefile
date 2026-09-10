@@ -99,8 +99,10 @@ rule all:
             "assets/plots/binder_cumulant_Nt{Nt}.pdf", Nt=[4, 5]
         ),
         plot_specific_heat=expand("assets/plots/specific_heat_Nt{Nt}.pdf", Nt=[4, 5]),
-        karsch_out="data_assets/Sp4_scale.csv",
+        karsch_out="data_assets/scale_setting.csv",
         latent_heat_plot="assets/plots/latent_heat.pdf",
+        WF_plot="assets/plots/vis_W_E.pdf",
+        WF_RESULTS="extern_data/Sp4_w0.dat",
         surface_tension_plot="assets/plots/surface_tension_term.pdf",
         ensembles_combined="assets/tables/runs.tex",
         file_out="assets/tables/beta_critical.tex",
@@ -391,7 +393,7 @@ rule surface_tension_plot:
 rule latent_heat:
     input:
         script="scripts/latent_heat.jl",
-        scale_data="data_assets/Sp4_scale.csv",
+        scale_data="data_assets/scale_setting.csv",
         h5file_Nt4="data_assets/Sp4_Nt4_sorted.hdf5",
         h5file_Nt5="data_assets/Sp4_Nt5_sorted.hdf5",
         julia_instantiated="tmp/julia_ready",
@@ -405,14 +407,15 @@ rule latent_heat:
 rule karsch:
     input:
         script="scripts/karsch.jl",
-        scale_data="data_assets/Sp4_w0.dat",
+        scale_data="extern_data/Sp4_w0.dat",
         julia_instantiated="tmp/julia_ready",
     output:
-        out="data_assets/Sp4_scale.csv",
+        out="data_assets/scale_setting.csv",
+        plot="assets/plots/w0inv_beta.pdf",
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --refw0 0.6 --outfile {output.out} --scalefile {input.scale_data}'
+        'julia --project="." {input.script} --refw0 0.75 --group SPN --pltfile {output.plot} --outfile {output.out} --scalefile {input.scale_data}'
 
 rule critical_beta_table:
     input:
@@ -456,6 +459,50 @@ rule combine_ensemble_tables:
     shell:
         'julia --project="." {input.script} --outfile {output.file_out} --file1 {input.file1} --file2 {input.file2}'
 
+rule read_scale_setting_files:
+    input:
+        WF_shell="scripts/create_WF_files.sh",
+        PROD_DIR="raw_data/ScaleSetting/",
+        TMP_DIR="tmp/ScaleSetting/",
+        Bootstrap_script="libs/edbennett-sp2n-topology-202205-b54af3f/src/produce_bs_sample.py",
+        Topology_script="libs/edbennett-sp2n-topology-202205-b54af3f/src/Topology.py",
+    output:
+        WF_RESULTS="extern_data/Sp4_w0.dat",
+    conda:
+        "envs/scale_environment.yml"
+    shell:
+        """
+        PROC_DIR={input.PROD_DIR}
+        TMP_DIR={input.TMP_DIR}
+        {input.WF_shell} $PROC_DIR $TMP_DIR
+        NUM_BS=50
+        PICKLE_DIR="$TMP_DIR"/pickle_files/
+        WF_RESULTS={output.WF_RESULTS}
+        E0=0.6
+        W0=0.6
+        for f in "$TMP_DIR"/WF*; do
+            python {input.Bootstrap_script} $f  --num_bs $NUM_BS --pickle_dir $PICKLE_DIR
+        done
+        python {input.Topology_script} $E0 $W0 "$TMP_DIR"/WF* --pickle_dir $PICKLE_DIR --group "SPN" > $WF_RESULTS
+        """
+        
+rule plot_Wilson_flow:
+    input:
+        TMP_DIR="tmp/ScaleSetting/",
+        visual_script="libs/edbennett-sp2n-topology-202205-b54af3f/src/vis_WF_W_E.py",
+        WF_RESULTS="extern_data/Sp4_w0.dat",
+    output:
+        WF_plot="assets/plots/vis_W_E.pdf"
+    conda:
+        "envs/scale_environment.yml"
+    shell:
+        """
+        TMP_DIR={input.TMP_DIR}
+        PICKLE_DIR="$TMP_DIR"/pickle_files/
+        E0=0.6
+        W0=0.6
+        python {input.visual_script} $E0 $W0 "$TMP_DIR"/WF* --pickle_dir $PICKLE_DIR --group "SPN" --outfile {output.WF_plot}
+        """
 
 rule combine_csv:
     input:
