@@ -412,7 +412,7 @@ rule latent_heat:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
         julia_instantiated="tmp/julia_ready",
     output:
-        plot="assets/plots/{group}/latent_heat.pdf",
+        plot="assets/{group}/plots/latent_heat.pdf",
     conda:
         "envs/environment.yml"
     shell:
