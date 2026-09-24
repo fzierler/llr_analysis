@@ -113,19 +113,25 @@ function latent_heat(up,Δup,Nt,ß,Δß,Nc,C2,ß0,c0,c1,c2,c3,Cov)
     return Lh, ΔLh
 end
 
-function main(files, scale_file, plt_name)
+function main(file, scale_file, plt_name)
     plt = plot(; ylabel = L"\langle \Delta u_p \rangle_{\beta_{CV}}", xlabel = L"(N_t/N_s)^3")
     Nt = 0
     ßs, ß0, w0inv, w0inv_err, coeff, Cov, Nc = read_scale_csv(scale_file)
     c0, c1, c2, c3 =  coeff[1], coeff[2], coeff[3], coeff[4]
     ß0 = 7.5
     C2 = Casmir("SPN", Nc)
-    for (j,file) in enumerate(files)
-        fid = h5open(file)
-        runs = keys(fid)
-        runs = filter(!startswith("provenance"), runs)
-        x, ß, Δß, up, Δup, Lh, ΔLh  = zeros(length(runs)), zeros(length(runs)), zeros(length(runs)), zeros(length(runs)), zeros(length(runs)), zeros(length(runs)), zeros(length(runs))
-        for (i, r) in enumerate(runs)
+
+    fid = h5open(file)
+    runs = filter(!startswith("provenance"), keys(fid))
+    Nts  = unique([ read(fid[r], "Nt")  for r in runs])
+
+    for (j, Nt) in enumerate(Nts)
+        runs_Nt = filter(r -> read(fid[r], "Nt") == Nt, runs)
+        x       = zeros(length(runs_Nt))
+        ß, Δß   = zeros(length(runs_Nt)), zeros(length(runs_Nt)) 
+        up, Δup = zeros(length(runs_Nt)), zeros(length(runs_Nt))
+        Lh, ΔLh = zeros(length(runs_Nt)), zeros(length(runs_Nt))
+        for (i, r) in enumerate(runs_Nt)
             beta, latent, Nt, Ns = beta_latent_jackknife(fid, r)
             ß[i], Δß[i] = apply_jackknife(beta)
             up[i], Δup[i] = apply_jackknife(latent)
@@ -134,6 +140,7 @@ function main(files, scale_file, plt_name)
         end
         plot!(plt, x .^ 3, Lh, yerr = ΔLh, markershape = MARKERS[j], markeralpha = 0.7, label = L"N_t=%$Nt")
     end
+
     plot!(plt; ylims = (minimum(ylims(plt)), maximum(ylims(plt))))
     plot!(plt; xlims = (0, maximum(xlims(plt))))
     savefig(plt,  plt_name)
@@ -148,10 +155,9 @@ function parse_commandline()
         "--scalefile"
         help = "Location of the scale setting file"
         required = true
-        "arg"
-        help = "HDF5 files with sorted data for all Nt to be plotted"
+        "--h5file"
+        help = "HDF5 file containing the sorted results"
         required = true
-        nargs = '+'
     end
     return parse_args(s)
 end
@@ -159,8 +165,8 @@ function main()
     args = parse_commandline()
     plotfile = args["plotfile"]
     scalefile = args["scalefile"]
-    files = args["arg"]
-    main(files, scalefile, plotfile)
+    file = args["h5file"]
+    main(file, scalefile, plotfile)
     return nothing
 end
 main()

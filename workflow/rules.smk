@@ -416,7 +416,7 @@ rule latent_heat:
     conda:
         "envs/environment.yml"
     shell:
-        'julia --project="." {input.script} --plotfile {output.plot} --scalefile {input.scale_data} {input.h5file}'
+        'julia --project="." {input.script} --plotfile {output.plot} --scalefile {input.scale_data} --h5file {input.h5file}'
 
 rule karsch:
     input:
