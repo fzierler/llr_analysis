@@ -348,7 +348,6 @@ rule ployakov_loop_overview_compact:
     shell:
         'julia --project="." {input.script} --h5file {input.h5file} --plot_name {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
-
 rule ployakov_loop_vs_beta:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
@@ -423,7 +422,7 @@ rule latent_heat:
 rule karsch:
     input:
         script="scripts/karsch.jl",
-        scale_data="data_assets/{group}_w0.dat",
+        scale_data="data_assets/{group}/{group}_w0.dat",
         julia_instantiated="tmp/julia_ready",
     output:
         out="data_assets/{group}/scale_setting.csv",
