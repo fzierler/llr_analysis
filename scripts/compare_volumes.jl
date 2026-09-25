@@ -50,15 +50,19 @@ function a_vs_central_action_plot!(plt, h5id, runs::Vector; kws...)
         if length(m_ind) == length(p_ind) == 1
             p_ind = only(p_ind)
             m_ind = only(m_ind)
-            δ = m_ind - p_ind
-            xmin, xmax = min(xmin, up[p_ind - δ]), max(xmax, up[m_ind + 2δ])
-            ymin, ymax = min(ymin, a0[p_ind - δ]), max(ymax, a0[m_ind + 2δ])
+            # y-axis range: Show peak/valley and some extra
+            s = 0.25*(a0[p_ind] - a0[m_ind])
+            ymin, ymax = min(ymin, a0[m_ind] - s ), max(ymax, a0[p_ind] + s )
+            # x-axis range: Stop plot where a_n 'leaves' the y-axis range 
+            x_min_ind = findfirst(i -> a0[i] > ymin , eachindex(a0))
+            x_max_ind = findlast(i -> a0[i] < ymax , eachindex(a0))
+            xmin, xmax = min(xmin, up[x_min_ind]), max(xmax, up[x_max_ind])
             plot!(plt, xlims = (xmin, xmax), ylims = (ymin, ymax))
         end
     end
     return plt
 end
-function an_action_volumes(file, plotdest, Nt, Ns; title, largets_replicas)
+function an_action_volumes(file, plotdest, Nt, Ns, Nrep; title, largets_replicas, zoom)
     ispath(dirname(plotdest)) || mkpath(dirname(plotdest))
     h5id = h5open(file)
     runs = keys(h5id)
@@ -68,6 +72,9 @@ function an_action_volumes(file, plotdest, Nt, Ns; title, largets_replicas)
     end
     if !iszero(Ns)
         runs = filter(r -> read(h5id[r], "Ns") == Ns, runs)
+    end
+    if !iszero(Nrep)
+        runs = filter(r -> read(h5id[r], "N_replicas") == Nrep, runs)
     end
     if largets_replicas
         runs = largets_replica_runs(h5id, runs)
@@ -99,6 +106,10 @@ function parse_commandline()
         help = "Ns of the runs to be plotted of the plot"
         default = 0
         arg_type = Int
+        "--Nrep"
+        help = "Nrep of the runs to be plotted of the plot"
+        default = 0
+        arg_type = Int
         "--largets_replicas"
         help = "include only run with largest number of replicas"
         default = true
@@ -113,7 +124,8 @@ function main()
     title = args["title"]
     Nt = args["Nt"]
     Ns = args["Ns"]
+    Nrep = args["Nrep"]
     largets_replicas = args["largets_replicas"]
-    return an_action_volumes(file, plotdst, Nt, Ns; title, largets_replicas)
+    return an_action_volumes(file, plotdst, Nt, Ns, Nrep; title, largets_replicas)
 end
 main()

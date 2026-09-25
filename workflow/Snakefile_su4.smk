@@ -31,11 +31,11 @@ rule all_su4:
         plot_specific_heat=expand(
             "assets/su4/plots/specific_heat_Nt{Nt}.pdf", Nt=Nts),
         supercooling_csv="data_assets/su4/supercooling_param.csv",
-        an_replicas=expand(
-            "assets/su4/plots/an_replicas_Nt{Nt}_Ns{Ns}.pdf", zip,
-            Nt=[ 5, 5],
-            Ns=[28,32],
-        ),
+        an_replicas=[
+            "assets/su4/plots/an_replicas_Nt5_Ns28.pdf",
+            "assets/su4/plots/an_replicas_Nt5_Ns32.pdf",
+            "assets/su4/plots/an_Nt5_Ns32_Nrep128.pdf",
+        ],
         plot_traj_hist=expand(
             "assets/su4/plots/{name}/energy_{plot}_{dataset}.pdf",
             dataset=list_datasets(metadata),

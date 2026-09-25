@@ -173,6 +173,19 @@ rule an_replica_comparison_plots:
         r'julia --project="." {input.script} --largets_replicas false --h5file {input.h5file} --plot_file {output.plot} --Nt {wildcards.Nt} --Ns {wildcards.Ns} --title "\$N_t\\times N_s^3={wildcards.Nt}\\times{wildcards.Ns}^3\$"'
 
 
+rule an_replica_comparison_plots_replicas:
+    input:
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
+        script="scripts/compare_volumes.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="assets/{group}/plots/an_Nt{Nt}_Ns{Ns}_Nrep{Nrep}.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        r'julia --project="." {input.script} --largets_replicas false --h5file {input.h5file} --plot_file {output.plot} --Nrep {wildcards.Nrep} --Nt {wildcards.Nt} --Ns {wildcards.Ns} --title "\$N_t\\times N_s^3={wildcards.Nt}\\times{wildcards.Ns}^3\$"'
+
+
 rule entropy_plots:
     input:
         h5file="data_assets/{group}/all_{group}_sorted.hdf5",
