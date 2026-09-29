@@ -62,7 +62,7 @@ function a_vs_central_action_plot!(plt, h5id, runs::Vector; kws...)
     end
     return plt
 end
-function an_action_volumes(file, plotdest, Nt, Ns, Nrep; title, largets_replicas, zoom)
+function an_action_volumes(file, plotdest, Nt, Ns, Nrep; title, largets_replicas)
     ispath(dirname(plotdest)) || mkpath(dirname(plotdest))
     h5id = h5open(file)
     runs = keys(h5id)
