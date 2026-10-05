@@ -64,8 +64,10 @@ rule parse_hdf5:
         h5file="tmp/{group}/{group}.hdf5",
     conda:
         "envs/environment.yml"
+    threads: max(1, workflow.cores // 2)
+    priority: 10
     shell:
-        'julia --project="." {input.script} --h5file_unsorted {output.h5file} --metadata {input.metadata}'
+        'julia --threads={threads} --project="." {input.script} --h5file_unsorted {output.h5file} --metadata {input.metadata}'
 
 
 rule sort_hdf5:
@@ -290,7 +292,8 @@ rule cumulant_plots:
         plot_specific_heat="assets/{group}/plots/specific_heat_Nt{Nt}.pdf",
     conda:
         "envs/environment.yml"
-    threads: max(1,workflow.cores // 2)
+    threads: max(1, workflow.cores // 2)
+    priority: 10
     shell:
         'julia --threads {threads} --project="." {input.script} --h5file {input.h5file} --plot_file_binder_cumulant {output.plot_binder_cumulant} --plot_file_specific_heat {output.plot_specific_heat} --Nt {wildcards.Nt}'
 
@@ -371,7 +374,7 @@ rule ployakov_loop_vs_beta:
     conda:
         "envs/environment.yml"
     # use threads and increase priority since this is one of the longer running rules
-    threads: max(1,workflow.cores // 2)
+    threads: max(1, workflow.cores // 2)
     priority: 10
     shell:
         'julia --project="." --threads {threads} {input.script} --h5file_in {input.h5file} --h5file_out {output.h5file}'

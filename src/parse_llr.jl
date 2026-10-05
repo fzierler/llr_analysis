@@ -184,6 +184,8 @@ function parse_llr(file)
     # end function and returned parsed information
     return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas, E_therm, E_meas, E_fxa
 end
+
+# TODO: open hdf5 file at the top level soo that we can parallelise across different runs with thread migrationenabled.
 function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filename = "out_0")
     fid = h5open(h5file, "cw")
 
@@ -218,7 +220,7 @@ function llr_dir_hdf5(dir, h5file; suffix = "", skip_repeats = String[], filenam
     write(fid, joinpath(name, "Nt"), Nt)
     write(fid, joinpath(name, "Ns"), Ns)
 
-    @showprogress desc = "parsing $name" for repeat in repeats
+    @showprogress desc = "parsing $name" Threads.@threads for repeat in repeats
         for rep in replica_dirs[repeat]
             file = joinpath(dir, repeat, rep, filename)
             a0 = parse_initial_a(file)
