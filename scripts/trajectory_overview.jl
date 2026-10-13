@@ -15,50 +15,47 @@ gr(
     left_margin = 7Plots.mm,
 )
 
-function overview( h5dset, run; repeat_id = 1, replica_id = read(h5dset[run], "N_replicas") ÷ 2)
+function overview( h5dset, run; repeat_id = 1, replica_id = read(h5dset[run], "N_replicas") ÷ 2, zoom)
     Nreplicas = read(h5dset[run], "N_replicas")
-    plt1 = full_trajectory_plot(h5dset, run, repeat_id, replica_id, lens = false)
-    plt2 = full_trajectory_plot(h5dset, run, repeat_id, Nreplicas - 1, lens = false)
-    plt3 = full_trajectory_plot(h5dset, run, repeat_id, 1, lens = false)
+    plt1 = full_trajectory_plot(h5dset, run, repeat_id, replica_id; lens = false, zoom)
+    plt2 = full_trajectory_plot(h5dset, run, repeat_id, Nreplicas - 1; lens = false, zoom)
+    plt3 = full_trajectory_plot(h5dset, run, repeat_id, 1; lens = false, zoom)
     plot!(plt2, legend = :topleft)
     plt = plot(plt3, plt1, plt2, layout = grid(1, 3), size = (1400, 1000))
     return plt
 end
-function overview_all(h5dset, run, i1, i2, i3 ; repeat_id = 1)
-    Nreplicas = read(h5dset[run], "N_replicas")
-    plt1 = full_trajectory_plot(h5dset, run, repeat_id, i1, lens = false)
-    plt2 = full_trajectory_plot(h5dset, run, repeat_id, i2, lens = false)
-    plt3 = full_trajectory_plot(h5dset, run, repeat_id, i3, lens = false)
+function overview_all(h5dset, run, i1, i2, i3 ; repeat_id = 1, zoom)
+    plt1 = full_trajectory_plot(h5dset, run, repeat_id, i1; lens = false, zoom)
+    plt2 = full_trajectory_plot(h5dset, run, repeat_id, i2; lens = false, zoom)
+    plt3 = full_trajectory_plot(h5dset, run, repeat_id, i3; lens = false, zoom)
     display(plt1)
     plot!(plt2, legend = :topleft)
     plt = plot(plt1, plt2, plt3, layout = grid(1, 3), size = (1400, 1000))
     return plt
 end
-function overview_all(h5dset, run, i1, i2 ; repeat_id = 1)
-    Nreplicas = read(h5dset[run], "N_replicas")
-    plt1 = full_trajectory_plot(h5dset, run, repeat_id, i1, lens = false)
-    plt2 = full_trajectory_plot(h5dset, run, repeat_id, i2, lens = false)
+function overview_all(h5dset, run, i1, i2 ; repeat_id = 1, zoom)
+    plt1 = full_trajectory_plot(h5dset, run, repeat_id, i1; lens = false, zoom)
+    plt2 = full_trajectory_plot(h5dset, run, repeat_id, i2; lens = false, zoom)
     plt3 = plot(size = (500, 1000))
     plot!(plt2, legend = :topleft)
     plt = plot(plt1, plt2, plt3, layout = grid(1, 3), size = (1400, 1000))
     return plt
 end
-function overview_all(h5dset, run, i1 ; repeat_id = 1)
-    Nreplicas = read(h5dset[run], "N_replicas")
-    plt1 = full_trajectory_plot(h5dset, run, repeat_id, i1, lens = false)
+function overview_all(h5dset, run, i1 ; repeat_id = 1, zoom)
+    plt1 = full_trajectory_plot(h5dset, run, repeat_id, i1; lens = false, zoom)
     plt2 = plot(size = (500, 1000))
     plt3 = plot(size = (500, 1000))
     plot!(plt2, legend = :topleft)
     plt = plot(plt1, plt2, plt3, layout = grid(1, 3), size = (1400, 1000))
     return plt
 end
-function overview_plot(file, run, plotfile)
+function overview_plot(file, run, plotfile, zoom)
     h5dset = h5open(file)
     ispath(dirname(plotfile)) || mkpath(dirname(plotfile))
     Δa0 = a_vs_central_action(h5dset, run)[2]
     ind = findmax(Δa0)[2] - 1
     repeats = parse.(Int, read(h5dset[run], "repeats"))
-    plt_max = overview(h5dset, run, repeat_id = first(repeats), replica_id = ind)
+    plt_max = overview(h5dset, run; repeat_id = first(repeats), replica_id = ind, zoom)
     # save plots for the replica with maximum uncertainty
     plt_names = AbstractString[]
     plt_name = tempname()
@@ -66,7 +63,7 @@ function overview_plot(file, run, plotfile)
     push!(plt_names, plt_name*"_max.pdf")
     # save plots for all replicas
     for replica_batch in Iterators.partition(0:length(Δa0)-1,3)
-        plt = overview_all(h5dset, run, replica_batch... ; repeat_id = first(repeats))
+        plt = overview_all(h5dset, run, replica_batch... ; repeat_id = first(repeats), zoom)
         savefig(plt, plt_name*"_$(first(replica_batch)).pdf")
         push!(plt_names, plt_name*"_$(first(replica_batch)).pdf")
     end
@@ -84,11 +81,15 @@ function parse_commandline_per_run()
         "--run_name"
         help = "Which dataset in the HDF5 file to plot"
         required = true
+        "--zoom"
+        help = "Iteration number to start plotting"
+        arg_type = Bool
+        default = false
     end
     return parse_args(s)
 end
 function main_per_run()
     args = parse_commandline_per_run()
-    return overview_plot(args["h5file"], args["run_name"], args["plot_file"])
+    return overview_plot(args["h5file"], args["run_name"], args["plot_file"], args["zoom"])
 end
 main_per_run()

@@ -108,6 +108,18 @@ rule overview_plots:
     shell:
         'julia --project="." {input.script} --h5file {input.h5file} --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
 
+rule overview_plots_zoom:
+    input:
+        h5file="data_assets/{group}/all_{group}_sorted.hdf5",
+        script="scripts/trajectory_overview.jl",
+        julia_instantiated="tmp/julia_ready",
+    output:
+        plot="{loc}/{group}/plots/overview_zoom/{Nt}x{Ns}_{Nreplicas}replicas_run{id}.pdf",
+    conda:
+        "envs/environment.yml"
+    shell:
+        'julia --project="." {input.script} --h5file {input.h5file} --zoom true --plot_file {output.plot} --run_name {wildcards.Nt}x{wildcards.Ns}_{wildcards.Nreplicas}replicas_run{wildcards.id}'
+
 
 rule an_trajectory_plots:
     input:
