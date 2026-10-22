@@ -450,7 +450,7 @@ rule latent_heat:
 rule karsch:
     input:
         script="scripts/karsch.jl",
-        scale_data="data_assets/{group}/{group}_w0.dat",
+        scale_data="data_assets/{group}/{group}_w0.csv",
         julia_instantiated="tmp/julia_ready",
     output:
         out="data_assets/{group}/scale_setting.csv",
@@ -471,7 +471,7 @@ rule read_scale_setting_files:
         Bootstrap_script="libs/sp2n-scalesetting-reduced/src/produce_bs_sample.py",
         Topology_script="libs/sp2n-scalesetting-reduced/src/Topology.py",
     output:
-        WF_RESULTS="data_assets/{group}/{group}_w0.dat",
+        WF_RESULTS="data_assets/{group}/{group}_w0.csv",
     params:
         TMP_DIR="tmp/{group}/scale_setting/",
         num_bs=50,
@@ -497,7 +497,7 @@ rule read_scale_setting_files:
 rule plot_Wilson_flow:
     input:
         visual_script="libs/sp2n-scalesetting-reduced/src/vis_WF_W_E.py",
-        WF_RESULTS="data_assets/{group}/{group}_w0.dat",
+        WF_RESULTS="data_assets/{group}/{group}_w0.csv",
     output:
         WF_plot="assets/{group}/plots/vis_W_E.pdf"
     params:
