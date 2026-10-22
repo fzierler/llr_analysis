@@ -29,9 +29,13 @@ rule all_su4:
             name=("energies","energies_extra_therm")
         ),
         supercooling_csv="data_assets/su4/supercooling_param.csv",
-        an_replicas=[
+        an_replicas=(
             "assets/su4/plots/an_replicas_Nt5_Ns28.pdf",
             "assets/su4/plots/an_replicas_Nt5_Ns32.pdf",
             "assets/su4/plots/an_Nt5_Ns32_Nrep128.pdf",
-        ],
+        ),
+        tables = (
+            "assets/su4/tables/runs.tex",
+            "assets/su4/tables/beta_critical.tex",
+        ),
 
