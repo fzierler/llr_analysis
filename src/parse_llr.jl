@@ -178,9 +178,6 @@ function parse_llr(file)
         end
     end
     close(io)
-    # assert that we always have used a consistent number of thermalisation and measurements
-    # llr_therm = only(unique(llr_therm))
-    # llr_meas  = only(unique(llr_meas))
     # end function and returned parsed information
     return dS0, S0, plaq, a, is_rm, S0_fxa[1:(end - 1)], a_fxa[1:(end - 1)], poly, llr_therm, llr_meas, E_therm, E_meas, E_fxa
 end
@@ -271,6 +268,8 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
         p = read_non_matching_trajectory(h5dset[run][j], Float64; key = "plaq")
         is_rm = read_non_matching_trajectory(h5dset[run][j], Bool; key = "is_rm")
         S = read_non_matching_trajectory(h5dset[run][j], Float64; key = "S0")
+        llr_therm = read_non_matching_trajectory(h5dset[run][j], Int; key = "llr_therm")
+        llr_meas = read_non_matching_trajectory(h5dset[run][j], Int; key = "llr_meas")
 
         # Check if we have any mismatches of the unsorted central energies
         data_healthy = all(allequal, eachslice(sort(S, dims = 1), dims = 1))
@@ -311,6 +310,8 @@ function sort_by_central_energy_to_hdf5_run(h5file_in, h5file_out, run)
             write(dset, "a_sorted", a[i, :])
             write(dset, "plaq_sorted", p[i, :])
             write(dset, "is_rm", is_rm[i, :])
+            write(dset, "llr_therm", llr_therm[i, :])
+            write(dset, "llr_meas", llr_meas[i, :])
             write(dset, "dS0", dS0)
             write(dset, "a0", a0)
         end
