@@ -1,12 +1,13 @@
 name = "LLRParsing"
 uuid = "c3118f9c-a4de-4e0f-9f06-ac8db61d0145"
-authors = ["Fabian Zierler <fabian.zierler@a1.net>"]
 version = "0.1.0"
+authors = ["Fabian Zierler <fabian.zierler@a1.net>"]
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Clustering = "aaaa29a8-35af-508c-8bc3-b662a17a0fe5"
 CodecZstd = "6b39b394-51ab-5f42-8807-6242bab2b4c2"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
@@ -31,9 +32,14 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TranscodingStreams = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 
+[sources]
+HiRepParsing = {path = "libs/HiRepParsing"}
+MadrasSokal = {path = "libs/MadrasSokal"}
+
 [compat]
 ArgParse = "1.2.0"
 BenchmarkTools = "1.6.0"
+Clustering = "0.15.8"
 CodecZstd = "0.8.6"
 HDF5 = "0.17.2"
 LaTeXStrings = "1.4.0"
@@ -51,9 +57,3 @@ Roots = "2.2.7"
 Statistics = "1.10.0"
 StatsBase = "0.34.4"
 TranscodingStreams = "0.11.3"
-
-[sources.HiRepParsing]
-path = "libs/HiRepParsing"
-
-[sources.MadrasSokal]
-path = "libs/MadrasSokal"
