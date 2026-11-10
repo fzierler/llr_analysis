@@ -6,12 +6,25 @@ metadata = pd.read_csv("metadata/runs_sp4.csv")
 
 rule all_sp4:
     input:
-        plots_per_run=expand( [
+        plots_per_run_all=expand( [
             "assets/sp4/plots/overview/{dataset}.pdf",
             "assets/sp4/plots/overview_zoom/{dataset}.pdf",
             "assets/sp4/plots/an_trajectories/{dataset}.pdf",
+            ], dataset=list_datasets_Nt(metadata, (4, 5, 6)) ),
+        plot_traj_hist=expand(
+            "assets/sp4/plots/{name}/energy_{plot}_{dataset}.pdf",
+            dataset=list_datasets_Nt(metadata, (6, )),
+            plot=("trajectory","histogram"),
+            name=("energies","energies_extra_therm")
+        ),
+         plots_Nt=expand( [
+             "assets/sp4/plots/an_volume_Nt{Nt}.pdf",
+             "assets/sp4/plots/binder_cumulant_Nt{Nt}.pdf", 
+             "assets/sp4/plots/specific_heat_Nt{Nt}.pdf", 
+             ], Nt=[6 ] ),
+        plots_per_run=expand( [
             "assets/sp4/plots/free_energy/free_energy_{dataset}.pdf",
-            ], dataset=list_datasets(metadata) ),
+            ], dataset=list_datasets_Nt(metadata, (4, 5)) ),
         plots_Nt=expand( [
             "assets/sp4/plots/an_volume_Nt{Nt}.pdf",
             "assets/sp4/plots/entropy_Nt{Nt}.pdf",
@@ -23,7 +36,7 @@ rule all_sp4:
             ], Nt=[4, 5] ),
         double_gaussian=expand(
             "assets/sp4/plots/plaquette_distribution/pd_{dataset}_{ratio}.pdf",
-            dataset=list_datasets(metadata),
+            dataset=list_datasets_Nt(metadata, (4, 5) ),
             ratio=["1:1", "2:1", "1:2"] ),
         polyakov_loop_hist=expand( [
             "assets/sp4/plots/polyakov_loop_hist/polyakov_{dataset}.pdf",

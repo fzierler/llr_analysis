@@ -5,13 +5,12 @@ import os
 os.environ["GKSwstype"] = "100"
 
 
-def list_datasets_Nt(metadata, Nt):
+def list_datasets_Nt(metadata, Nts):
     return [
         f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas_run{dataset.id}"
         for dataset in metadata.itertuples()
-        if dataset.Nt == Nt
+        if dataset.Nt in Nts
     ]
-
 
 def list_datasets(metadata):
     return [
@@ -20,11 +19,11 @@ def list_datasets(metadata):
     ]
 
 
-def list_datasets_poly_Nt(metadata,Nt):
+def list_datasets_poly_Nt(metadata,Nts):
     return [
         f"{dataset.Nt}x{dataset.Ns}_{dataset.replicas}replicas_run{dataset.id}"
         for dataset in metadata.itertuples()
-        if dataset.Nt == Nt
+        if dataset.Nt in Nts
         if dataset.polyakov
     ]
 
