@@ -25,7 +25,7 @@ rule all_sp4:
         plots_per_run=expand( [
             "assets/sp4/plots/free_energy/free_energy_{dataset}.pdf",
             ], dataset=list_datasets_Nt(metadata, (4, 5)) ),
-        plots_Nt=expand( [
+        plots_Nt45=expand( [
             "assets/sp4/plots/an_volume_Nt{Nt}.pdf",
             "assets/sp4/plots/entropy_Nt{Nt}.pdf",
             "assets/sp4/plots/critical_beta_ratios_Nt{Nt}.pdf",

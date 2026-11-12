@@ -132,11 +132,19 @@ function main(file, scale_file, plt_name)
         up, Δup = zeros(length(runs_Nt)), zeros(length(runs_Nt))
         Lh, ΔLh = zeros(length(runs_Nt)), zeros(length(runs_Nt))
         for (i, r) in enumerate(runs_Nt)
-            beta, latent, Nt, Ns = beta_latent_jackknife(fid, r)
-            ß[i], Δß[i] = apply_jackknife(beta)
-            up[i], Δup[i] = apply_jackknife(latent)
-            Lh[i],ΔLh[i]  = latent_heat(up[i], Δup[i],Nt,ß[i], Δß[i],Nc,C2,ß0,c0,c1,c2,c3,Cov)
-            x[i] = inv(Ns / Nt)
+            try
+                beta, latent, Nt, Ns = beta_latent_jackknife(fid, r)
+                ß[i], Δß[i] = apply_jackknife(beta)
+                up[i], Δup[i] = apply_jackknife(latent)
+                Lh[i],ΔLh[i]  = latent_heat(up[i], Δup[i],Nt,ß[i], Δß[i],Nc,C2,ß0,c0,c1,c2,c3,Cov)
+                x[i] = inv(Ns / Nt)
+            catch
+                @warn "cannot determine latent heat for: $r"                
+                ß[i] , Δß[i]  = NaN, NaN
+                up[i], Δup[i] = NaN, NaN
+                Lh[i], ΔLh[i] = NaN, NaN
+                x[i] = NaN
+            end
         end
         plot!(plt, x .^ 3, Lh, yerr = ΔLh, markershape = MARKERS[j], markeralpha = 0.7, label = L"N_t=%$Nt")
     end
